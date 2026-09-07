@@ -80,7 +80,11 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
   .sidebar nav button { padding: 0 10px; font-size: 12px; }
   .sidebar-label, .playlist-link, .live-status, .sidebar-bottom { display: none; }
   .main { overflow: visible; }
-  .main header { position: static; height: 60px; padding: 0 16px; }
+  .main header { position: static; height: 60px; padding: 0 12px; }
+  .account-actions { width: 100%; justify-content: flex-end; gap: 6px; min-width: 0; }
+  .account-button, .install-button { min-width: 40px; padding: 7px 10px; }
+  .account-button span { max-width: 92px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .account-cancel { padding: 6px 4px; }
   .history { display: none; }
   .content { padding: 8px 16px 30px; }
   .greeting h1 { font-size: 42px; }
