@@ -49,6 +49,8 @@ npm run build
 - Tokens de acesso ficam apenas na memória da página e não entram no repositório.
 - O projeto é uma experiência pessoal, sem afiliação com Google, YouTube ou Spotify.
 
+[Política de Privacidade](https://pajeeh.github.io/aurora-music/privacy.html) · [Termos de Uso](https://pajeeh.github.io/aurora-music/terms.html)
+
 ## Próximas faixas
 
 - card público “tocando agora” com autenticação segura;
