@@ -31,6 +31,8 @@
 .account-button:disabled { opacity: .65; cursor: wait; }
 .account-actions { display: flex; align-items: center; gap: 10px; }
 .account-cancel, .account-notice button { background: transparent; border: 0; color: #d4c6ff; cursor: pointer; }
+.install-button { border: 1px solid #4f4260; background: #17131d; color: #d9cdf0; border-radius: 999px; padding: 8px 12px; display: flex; align-items: center; gap: 7px; cursor: pointer; }
+.install-button svg { width: 16px; }
 .main .account-notice { margin: 0 30px 12px; }
 .account-notice span { flex: 1; }
 .account-notice svg { flex-shrink: 0; }

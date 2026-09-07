@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { ChevronLeft, ChevronRight, CirclePlay, Clock3, Disc3, Heart, Home, Library, ListMusic, LogIn, MoreHorizontal, Pause, Play, Radio, Search, Settings2, Shuffle, SkipBack, SkipForward, Sparkles, Volume2 } from "lucide-react";
+import { CirclePlay, Clock3, Disc3, Download, Heart, Home, Library, LogIn, Pause, Play, Radio, Search, Settings2, SkipBack, SkipForward, Sparkles, Volume2 } from "lucide-react";
 import { tracks as initialTracks } from "./catalog";
 import { connectGoogle, getYouTubeProfile, googleConnectionReady, prepareGoogleConnection } from "./google";
 import { searchYouTube } from "./youtube";
@@ -13,6 +13,7 @@ import "./styles.css";
 import "./live.css";
 
 type View = "home" | "search" | "library";
+type InstallPromptEvent = Event & { prompt(): Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }> };
 
 function App() {
   const showcase = new URLSearchParams(window.location.search).has('showcase');
@@ -32,6 +33,7 @@ function App() {
   const [googleReady, setGoogleReady] = useState(false);
   const [preparingGoogle, setPreparingGoogle] = useState(false);
   const [accountNotice, setAccountNotice] = useState("");
+  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
   const connection = useRef<AbortController | null>(null);
   const [savedTracks, setSavedTracks] = useState<Track[]>(() => {
     let legacy: string[] = [];
@@ -57,6 +59,11 @@ function App() {
         .finally(() => { if (active) setPreparingGoogle(false); });
     }
     return () => { active = false; connection.current?.abort(); };
+  }, []);
+  useEffect(() => {
+    const receive = (event: Event) => { event.preventDefault(); setInstallPrompt(event as InstallPromptEvent); };
+    window.addEventListener('beforeinstallprompt', receive);
+    return () => window.removeEventListener('beforeinstallprompt', receive);
   }, []);
   useEffect(() => {
     try { localStorage.setItem("aurora-now-playing", JSON.stringify({ track: current, playing, updatedAt: new Date().toISOString() })); } catch { /* Playback remains usable when storage is unavailable. */ }
@@ -133,6 +140,13 @@ function App() {
     setToken(null); setProfile(null); setAccountNotice(message); setView('home');
   }
 
+  async function installApp() {
+    if (!installPrompt) return;
+    await installPrompt.prompt();
+    await installPrompt.userChoice;
+    setInstallPrompt(null);
+  }
+
   function play(track: Track, source?: Track[]) {
     setCurrent(track);
     player.load(track.id);
@@ -159,21 +173,21 @@ function App() {
       </nav>
       <div className="sidebar-label">COLEÇÃO</div>
       <button className="playlist-link" onClick={() => setView("library")}><span className="liked-icon"><Heart size={17} fill="currentColor" /></span><span><b>Músicas curtidas</b><small>{liked.length} faixas</small></span></button>
-      <button className="playlist-link"><span className="daily-icon"><Sparkles size={17} /></span><span><b>Meu fluxo</b><small>Feito para você</small></span></button>
+      <button className="playlist-link" onClick={() => play(queue[0] ?? initialTracks[0])}><span className="daily-icon"><Sparkles size={17} /></span><span><b>Meu fluxo</b><small>Reproduzir sua fila</small></span></button>
       <div className="live-status"><Radio size={16}/><span><b>Reprodução local</b><small>{playing ? "Tocando neste dispositivo" : "Player pausado"}</small></span><i className={playing ? "on" : ""}/></div>
       <div className="sidebar-bottom"><CirclePlay size={17}/><span>Reprodução oficial<br/><b>YouTube</b></span></div>
     </aside>
 
     <main className="main">
-      <header><div className="history"><button aria-label="Voltar"><ChevronLeft/></button><button aria-label="Avançar"><ChevronRight/></button></div><div className="account-actions"><button className="account-button" disabled={connecting || preparingGoogle} onClick={profile ? () => setView('library') : connectAccount}>{profile?.avatar?<img src={profile.avatar} alt=""/>:<LogIn/>}<span>{connecting?"Conectando…":preparingGoogle?"Preparando conexão…":profile?.name??"Conectar YouTube"}</span></button>{connecting && <button className="account-cancel" onClick={() => connection.current?.abort()}>Cancelar</button>}{profile && <button className="account-cancel" onClick={() => disconnectAccount()}>Sair</button>}</div></header>
+      <header><div/><div className="account-actions">{installPrompt && <button className="install-button" onClick={installApp}><Download/> Instalar</button>}<button className="account-button" disabled={connecting || preparingGoogle} onClick={profile ? () => setView('library') : connectAccount}>{profile?.avatar?<img src={profile.avatar} alt=""/>:<LogIn/>}<span>{connecting?"Conectando…":preparingGoogle?"Preparando conexão…":profile?.name??"Conectar YouTube"}</span></button>{connecting && <button className="account-cancel" onClick={() => connection.current?.abort()}>Cancelar</button>}{profile && <button className="account-cancel" onClick={() => disconnectAccount()}>Sair</button>}</div></header>
       {accountNotice && <div className="notice account-notice" role="status"><Settings2/><span>{accountNotice}</span><button aria-label="Fechar aviso da conta" onClick={() => setAccountNotice("")}>×</button></div>}
-      {view === "home" && <HomeView play={play} current={current} playing={playing} />}
+      {view === "home" && <HomeView play={play} current={current} playing={playing} showAll={() => setView('search')} />}
       {view === "search" && <SearchView query={query} setQuery={setQuery} search={runSearch} results={results} loading={loading} notice={notice} play={play} />}
       {view === "library" && <><section className="content"><LibraryPanel token={token} play={play} enqueue={enqueue} onAuthExpired={() => disconnectAccount('Sua autorização expirou. Conecte novamente para carregar a biblioteca.')}/></section><LibraryView tracks={likedTracks} play={play} /></>}
     </main>
 
     <aside className="rightbar">
-      <div className="right-title"><span>Tocando agora</span><MoreHorizontal /></div>
+      <div className="right-title"><span>Tocando agora</span></div>
       <div className="now-art"><img src={current.artwork}/><span className="yt-badge"><CirclePlay size={15}/> YouTube</span></div>
       <h2>{current.title}</h2><p>{current.artist}</p>
       <div className="about"><b>Sobre a reprodução</b><span>O áudio é fornecido pelo player oficial do YouTube.</span></div>
@@ -196,10 +210,10 @@ function App() {
 
 function Nav({active, icon, label, onClick}:{active:boolean;icon:React.ReactNode;label:string;onClick:()=>void}) { return <button className={active ? "active" : ""} onClick={onClick}>{icon}<span>{label}</span></button> }
 
-function HomeView({play,current,playing}:{play:(t:Track)=>void;current:Track;playing:boolean}) { return <section className="content">
+function HomeView({play,current,playing,showAll}:{play:(t:Track)=>void;current:Track;playing:boolean;showAll:()=>void}) { return <section className="content">
   <div className="greeting"><span>BOA TARDE</span><h1>O som certo,<br/>na hora certa.</h1><p>Sua música, organizada do seu jeito.</p></div>
   <h3>Atalhos para você</h3><div className="quick-grid">{initialTracks.slice(0,4).map(track => <button onClick={() => play(track)} key={track.id}><img src={track.artwork}/><b>{track.title}</b><span className="round-play">{current.id===track.id&&playing?<Pause fill="currentColor"/>:<Play fill="currentColor"/>}</span></button>)}</div>
-  <div className="section-head"><div><h2>Feito para o seu momento</h2><p>Seleções para entrar no ritmo.</p></div><button>Mostrar tudo</button></div>
+  <div className="section-head"><div><h2>Feito para o seu momento</h2><p>Seleções para entrar no ritmo.</p></div><button onClick={showAll}>Buscar mais</button></div>
   <div className="card-grid">{initialTracks.map(track => <button className="music-card" onClick={() => play(track)} key={track.id}><div><img src={track.artwork}/><span><Play fill="currentColor"/></span></div><b>{track.title}</b><small>{track.artist}</small></button>)}</div>
 </section> }
 
