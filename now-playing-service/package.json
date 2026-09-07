@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "scripts": { "start": "node server.js" },
+  "scripts": { "start": "node server.js", "test": "node --test test/*.test.js" },
   "dependencies": { "@google-cloud/firestore": "^9.0.1" },
   "engines": { "node": ">=22" }
 }
