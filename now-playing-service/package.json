@@ -1,0 +1,9 @@
+{
+  "name": "aurora-now-playing",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node server.js" },
+  "dependencies": { "@google-cloud/firestore": "^9.0.1" },
+  "engines": { "node": ">=22" }
+}

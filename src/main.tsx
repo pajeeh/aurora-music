@@ -9,6 +9,7 @@ import { LibraryPanel } from './LibraryPanel';
 import { usePlayer } from './usePlayer';
 import { nextTrack, formatTime, readTracks } from './playback';
 import { clearGoogleSession, readGoogleSession, saveGoogleSession } from './auth-session';
+import { nowPlayingReady, publishNowPlaying } from './now-playing';
 import "./styles.css";
 import "./live.css";
 
@@ -67,7 +68,8 @@ function App() {
   }, []);
   useEffect(() => {
     try { localStorage.setItem("aurora-now-playing", JSON.stringify({ track: current, playing, updatedAt: new Date().toISOString() })); } catch { /* Playback remains usable when storage is unavailable. */ }
-  }, [current, playing]);
+    if (token && nowPlayingReady()) publishNowPlaying(token, current, playing).catch(() => undefined);
+  }, [current, playing, token]);
 
   async function connectAccount() {
     if (connection.current || preparingGoogle) return;

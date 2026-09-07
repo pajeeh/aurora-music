@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { requestGoogleToken, YOUTUBE_READ_SCOPE } from '../src/google-token.ts';
+import { AURORA_SCOPES, requestGoogleToken, YOUTUBE_READ_SCOPE } from '../src/google-token.ts';
 
 // Test the real adapter at Google's callback boundary, without credentials or network.
 function googleBoundary() {
@@ -20,7 +20,7 @@ test('opens synchronously from the click and accepts the authorized read scope',
   const google = googleBoundary();
   const result = requestGoogleToken(google.oauth, 'test-client');
   assert.equal(google.requested, true);
-  assert.equal(google.config.scope, YOUTUBE_READ_SCOPE);
+  assert.equal(google.config.scope, AURORA_SCOPES);
   assert.equal(google.config.include_granted_scopes, false);
   google.config.callback({ access_token: 'test-only-token', scope: YOUTUBE_READ_SCOPE });
   assert.equal(await result, 'test-only-token');

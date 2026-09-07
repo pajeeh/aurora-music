@@ -1,4 +1,5 @@
 export const YOUTUBE_READ_SCOPE = "https://www.googleapis.com/auth/youtube.readonly";
+export const AURORA_SCOPES = `${YOUTUBE_READ_SCOPE} openid email profile`;
 
 type TokenResponse = { access_token?: string; scope?: string; error?: string };
 export type GoogleOAuth = {
@@ -30,7 +31,7 @@ export function requestGoogleToken(oauth: GoogleOAuth, clientId: string, signal?
     try {
       const client = oauth.initTokenClient({
         client_id: clientId,
-        scope: YOUTUBE_READ_SCOPE,
+        scope: AURORA_SCOPES,
         include_granted_scopes: false,
         callback(response) {
           if (response.error || !response.access_token) {
