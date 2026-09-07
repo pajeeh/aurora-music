@@ -1,0 +1,104 @@
+.live-status {
+  margin-top: 18px;
+  padding: 12px;
+  border: 1px solid #302b3b;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #a99fb8;
+}
+.live-status span { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.live-status b { font-size: 12px; color: #eeeaf3; }
+.live-status small { font-size: 10px; }
+.live-status i { width: 7px; height: 7px; border-radius: 50%; background: #595363; }
+.live-status i.on { background: #2fe2a5; box-shadow: 0 0 9px #2fe2a5; }
+.account-button {
+  border: 1px solid #3a3447;
+  background: #24202d;
+  color: #f5f1fa;
+  border-radius: 999px;
+  padding: 7px 13px 7px 9px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.account-button svg { width: 17px; }
+.account-button img { width: 25px; height: 25px; border-radius: 50%; }
+.account-button:hover { background: #302a3b; border-color: #625576; }
+.account-button:disabled { opacity: .65; cursor: wait; }
+.account-actions { display: flex; align-items: center; gap: 10px; }
+.account-cancel, .account-notice button { background: transparent; border: 0; color: #d4c6ff; cursor: pointer; }
+.main .account-notice { margin: 0 30px 12px; }
+.account-notice span { flex: 1; }
+.account-notice svg { flex-shrink: 0; }
+.account-notice button { padding: 6px; font-size: 20px; }
+
+.remote-library > p { color: #a49aaf; font-size: 13px; line-height: 1.6; }
+.remote-library button { cursor: pointer; color: #eee8f8; background: #272130; border: 1px solid #443653; border-radius: 9px; padding: 10px 14px; }
+.remote-library button:disabled { opacity: .5; cursor: wait; }
+.library-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
+.playlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.playlist-grid button { display: flex; flex-direction: column; text-align: left; gap: 8px; }
+.playlist-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 7px; }
+.playlist-grid small, .remote-tracks small { color: #aea2bb; }
+.remote-tracks > div { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+.remote-tracks > div > button:first-child { flex: 1; min-width: 0; display: flex; gap: 12px; align-items: center; text-align: left; }
+.remote-tracks img { width: 44px; height: 44px; object-fit: cover; }
+.remote-tracks span { display: grid; gap: 4px; overflow-wrap: anywhere; }
+.queue-row.current { background: #a184ff18; border-radius: 8px; }
+.rightbar { padding-bottom: 290px; }
+.controls button:not(.play) { display: grid; place-items: center; background: transparent; border: 0; color: #d4c6e3; padding: 5px; cursor: pointer; }
+.controls button:disabled { opacity: .35; cursor: default; }
+.timeline input, .volume input { width: 100%; min-width: 0; accent-color: #a489ff; cursor: pointer; }
+.volume input { width: 90px; }
+.youtube-frame { width: 360px; height: 203px; max-width: calc(100vw - 24px); }
+.player-mount { width: 100%; height: 100%; }
+.youtube-frame.showcase { display: none; }
+.player-error { position: absolute; bottom: 100%; margin-bottom: 8px; border: 1px solid #72513d; border-radius: 10px; background: #281d17; padding: 12px; color: #ffe0b9; font-size: 12px; }
+.player-error a { display: block; margin-top: 5px; color: #d7c6ff; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid #bb9fff; outline-offset: 3px; }
+@media (max-width: 1100px) {
+  body { min-width: 0; }
+  .app { grid-template-columns: 180px minmax(0, 1fr); }
+  .rightbar { display: none; }
+  .playerbar { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
+  .volume { display: none; }
+  .card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .quick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .content { padding-bottom: 250px; }
+}
+@media (max-width: 650px) {
+  .app { display: block; height: auto; min-height: 100vh; overflow: visible; padding-bottom: 330px; }
+  .sidebar { padding: 10px; position: sticky; top: 0; z-index: 5; }
+  .brand { padding: 0 8px 8px; }
+  .sidebar nav { display: flex; }
+  .sidebar nav button { padding: 0 10px; font-size: 12px; }
+  .sidebar-label, .playlist-link, .live-status, .sidebar-bottom { display: none; }
+  .main { overflow: visible; }
+  .main header { position: static; height: 60px; padding: 0 16px; }
+  .history { display: none; }
+  .content { padding: 8px 16px 30px; }
+  .greeting h1 { font-size: 42px; }
+  .quick-grid { grid-template-columns: 1fr; }
+  .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .playerbar { position: fixed; bottom: 0; left: 0; right: 0; height: 116px; display: flex; flex-direction: column; gap: 8px; padding: 8px 12px; }
+  .track-mini { width: 100%; min-width: 0; }
+  .track-mini img { width: 32px; height: 32px; }
+  .track-mini span { min-width: 0; }
+  .track-mini b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .controls { width: 100%; gap: 2px; }
+  .controls .play { width: 28px; height: 28px; }
+  .youtube-frame { bottom: 125px; right: 12px; }
+  .table-head, .track-table > button { grid-template-columns: 20px minmax(0, 1fr) 40px; }
+  .table-head > :nth-child(3), .track-table > button > :nth-child(3) { display: none; }
+  .table-track { min-width: 0; overflow: hidden; }
+  .library-hero { gap: 12px; }
+  .library-hero > div { width: 64px; height: 64px; flex-shrink: 0; }
+  .library-hero > div svg { width: 30px; }
+  .library-hero h1 { font-size: 25px; }
+  .search-view form { width: 100%; }
+  .search-view input { min-width: 0; }
+}
