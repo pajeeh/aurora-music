@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { listPlaylists, listPlaylistTracks, type Playlist } from './library-api';
 import type { Track } from './types';
 
-export function LibraryPanel({ token, play, enqueue }: { token: string | null; play: (track: Track, tracks?: Track[]) => void; enqueue: (track: Track) => void }) {
+export function LibraryPanel({ token, play, enqueue, onAuthExpired }: { token: string | null; play: (track: Track, tracks?: Track[]) => void; enqueue: (track: Track) => void; onAuthExpired: () => void }) {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [selected, setSelected] = useState<Playlist | null>(null);
   const [tracks, setTracks] = useState<Track[]>([]);
@@ -29,7 +29,13 @@ export function LibraryPanel({ token, play, enqueue }: { token: string | null; p
         if (controller.signal.aborted) return;
         setPlaylists(previous => more ? [...previous, ...page.items] : page.items); setNext(page.nextPageToken);
       }
-    } catch (cause) { if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : 'Falha ao carregar.'); }
+    } catch (cause) {
+      if (!controller.signal.aborted) {
+        const message = cause instanceof Error ? cause.message : 'Falha ao carregar.';
+        setError(message);
+        if (message.includes('expirou')) onAuthExpired();
+      }
+    }
     finally { if (request.current === controller) setBusy(false); }
   }
   useEffect(() => { setPlaylists([]); setSelected(null); setTracks([]); void load(null); return () => request.current?.abort(); }, [token]);

@@ -121,8 +121,16 @@ function App() {
         setNotice("Busca local de demonstração. Conecte sua conta para buscar no YouTube.");
       }
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Erro inesperado na busca.");
+      const message = error instanceof Error ? error.message : "Erro inesperado na busca.";
+      if (message.includes('expirou')) disconnectAccount('Sua autorização expirou. Conecte novamente para continuar.');
+      setNotice(message);
     } finally { setLoading(false); }
+  }
+
+  function disconnectAccount(message = 'Conta desconectada deste dispositivo.') {
+    connection.current?.abort();
+    clearGoogleSession(sessionStorage);
+    setToken(null); setProfile(null); setAccountNotice(message); setView('home');
   }
 
   function play(track: Track, source?: Track[]) {
@@ -157,11 +165,11 @@ function App() {
     </aside>
 
     <main className="main">
-      <header><div className="history"><button><ChevronLeft/></button><button><ChevronRight/></button></div><div className="account-actions"><button className="account-button" disabled={connecting || preparingGoogle} onClick={connectAccount}>{profile?.avatar?<img src={profile.avatar} alt=""/>:<LogIn/>}<span>{connecting?"Conectando…":preparingGoogle?"Preparando conexão…":profile?.name??"Conectar YouTube"}</span></button>{connecting && <button className="account-cancel" onClick={() => connection.current?.abort()}>Cancelar</button>}</div></header>
+      <header><div className="history"><button aria-label="Voltar"><ChevronLeft/></button><button aria-label="Avançar"><ChevronRight/></button></div><div className="account-actions"><button className="account-button" disabled={connecting || preparingGoogle} onClick={profile ? () => setView('library') : connectAccount}>{profile?.avatar?<img src={profile.avatar} alt=""/>:<LogIn/>}<span>{connecting?"Conectando…":preparingGoogle?"Preparando conexão…":profile?.name??"Conectar YouTube"}</span></button>{connecting && <button className="account-cancel" onClick={() => connection.current?.abort()}>Cancelar</button>}{profile && <button className="account-cancel" onClick={() => disconnectAccount()}>Sair</button>}</div></header>
       {accountNotice && <div className="notice account-notice" role="status"><Settings2/><span>{accountNotice}</span><button aria-label="Fechar aviso da conta" onClick={() => setAccountNotice("")}>×</button></div>}
       {view === "home" && <HomeView play={play} current={current} playing={playing} />}
       {view === "search" && <SearchView query={query} setQuery={setQuery} search={runSearch} results={results} loading={loading} notice={notice} play={play} />}
-      {view === "library" && <><section className="content"><LibraryPanel token={token} play={play} enqueue={enqueue}/></section><LibraryView tracks={likedTracks} play={play} /></>}
+      {view === "library" && <><section className="content"><LibraryPanel token={token} play={play} enqueue={enqueue} onAuthExpired={() => disconnectAccount('Sua autorização expirou. Conecte novamente para carregar a biblioteca.')}/></section><LibraryView tracks={likedTracks} play={play} /></>}
     </main>
 
     <aside className="rightbar">
@@ -200,3 +208,5 @@ function SearchView({query,setQuery,search,results,loading,notice,play}:{query:s
 function LibraryView({tracks,play}:{tracks:Track[];play:(t:Track)=>void}) { return <section className="content library-view"><div className="library-hero"><div><Heart fill="white"/></div><span><small>PLAYLIST</small><h1>Músicas curtidas</h1><p>{tracks.length} faixas salvas neste dispositivo</p></span></div>{tracks.length?<div className="track-table">{tracks.map((track,index)=><button key={track.id} onClick={()=>play(track)}><span>{index+1}</span><span className="table-track"><img src={track.artwork}/><span><b>{track.title}</b><small>{track.artist}</small></span></span><span>{track.album}</span><span>{track.duration}</span></button>)}</div>:<div className="empty"><Heart/><h2>Suas favoritas aparecerão aqui</h2><p>Curta uma música pelo coração no player.</p></div>}</section> }
 
 createRoot(document.getElementById("root")!).render(<React.StrictMode><App/></React.StrictMode>);
+
+if ('serviceWorker' in navigator && import.meta.env.PROD) window.addEventListener('load', () => navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => undefined));
