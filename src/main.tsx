@@ -16,7 +16,7 @@ type View = "home" | "search" | "library";
 
 function App() {
   const showcase = new URLSearchParams(window.location.search).has('showcase');
-  const [cachedSession] = useState(() => readGoogleSession(sessionStorage));
+  const [cachedSession] = useState(() => readGoogleSession(localStorage));
   const [view, setView] = useState<View>("home");
   const [queue, setQueue] = useState<Track[]>(() => readTracks('aurora-queue-v1', initialTracks));
   const [current, setCurrent] = useState(() => readTracks('aurora-current-v1', initialTracks)[0] ?? initialTracks[0]);
@@ -89,12 +89,12 @@ function App() {
       if (!attempt.signal.aborted) {
         setProfile(youtubeProfile);
         setToken(token);
-        try { saveGoogleSession(sessionStorage, { token, profile: youtubeProfile, expiresAt: Date.now() + 50 * 60 * 1000 }); } catch { /* A memory-only session still works. */ }
+        try { saveGoogleSession(localStorage, { token, profile: youtubeProfile, expiresAt: Date.now() + 50 * 60 * 1000 }); } catch { /* A memory-only session still works. */ }
         setAccountNotice("Conta conectada. Sua biblioteca e a busca já podem consultar o YouTube.");
         setView('library');
       }
     } catch (error) {
-      if (error instanceof Error && error.message.includes('expirou')) { clearGoogleSession(sessionStorage); setToken(null); setProfile(null); }
+      if (error instanceof Error && error.message.includes('expirou')) { clearGoogleSession(localStorage); setToken(null); setProfile(null); }
       setAccountNotice(attempt.signal.aborted
         ? "Tentativa cancelada. Feche a janela do Google antes de tentar novamente."
         : error instanceof Error ? error.message : "Não foi possível conectar sua conta.");
@@ -129,7 +129,7 @@ function App() {
 
   function disconnectAccount(message = 'Conta desconectada deste dispositivo.') {
     connection.current?.abort();
-    clearGoogleSession(sessionStorage);
+    clearGoogleSession(localStorage);
     setToken(null); setProfile(null); setAccountNotice(message); setView('home');
   }
 
