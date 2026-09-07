@@ -8,6 +8,7 @@ import type { Track } from "./types";
 import { LibraryPanel } from './LibraryPanel';
 import { usePlayer } from './usePlayer';
 import { nextTrack, formatTime, readTracks } from './playback';
+import { clearGoogleSession, readGoogleSession, saveGoogleSession } from './auth-session';
 import "./styles.css";
 import "./live.css";
 
@@ -15,17 +16,18 @@ type View = "home" | "search" | "library";
 
 function App() {
   const showcase = new URLSearchParams(window.location.search).has('showcase');
+  const [cachedSession] = useState(() => readGoogleSession(sessionStorage));
   const [view, setView] = useState<View>("home");
   const [queue, setQueue] = useState<Track[]>(() => readTracks('aurora-queue-v1', initialTracks));
   const [current, setCurrent] = useState(() => readTracks('aurora-current-v1', initialTracks)[0] ?? initialTracks[0]);
   const player = usePlayer(current.id, () => skip(1));
   const { playing } = player;
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(cachedSession?.token ?? null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Track[]>(initialTracks);
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState("");
-  const [profile, setProfile] = useState<{name:string;avatar?:string} | null>(null);
+  const [profile, setProfile] = useState<{name:string;avatar?:string} | null>(cachedSession?.profile ?? null);
   const [connecting, setConnecting] = useState(false);
   const [googleReady, setGoogleReady] = useState(false);
   const [preparingGoogle, setPreparingGoogle] = useState(false);
@@ -87,10 +89,12 @@ function App() {
       if (!attempt.signal.aborted) {
         setProfile(youtubeProfile);
         setToken(token);
+        try { saveGoogleSession(sessionStorage, { token, profile: youtubeProfile, expiresAt: Date.now() + 50 * 60 * 1000 }); } catch { /* A memory-only session still works. */ }
         setAccountNotice("Conta conectada. Sua biblioteca e a busca já podem consultar o YouTube.");
         setView('library');
       }
     } catch (error) {
+      if (error instanceof Error && error.message.includes('expirou')) { clearGoogleSession(sessionStorage); setToken(null); setProfile(null); }
       setAccountNotice(attempt.signal.aborted
         ? "Tentativa cancelada. Feche a janela do Google antes de tentar novamente."
         : error instanceof Error ? error.message : "Não foi possível conectar sua conta.");

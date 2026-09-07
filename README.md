@@ -46,7 +46,7 @@ npm run build
 - O áudio e o vídeo são fornecidos pelo player oficial do YouTube.
 - O Aurora não baixa nem intercepta mídia.
 - O acesso OAuth está em modo de testes e limitado às contas autorizadas no Google Cloud.
-- Tokens de acesso ficam apenas na memória da página e não entram no repositório.
+- Tokens de acesso ficam na memória e, por até 50 minutos, no armazenamento isolado da aba para sobreviver a uma recarga. Eles não entram no repositório nem no armazenamento permanente.
 - O projeto é uma experiência pessoal, sem afiliação com Google, YouTube ou Spotify.
 
 [Política de Privacidade](https://pajeeh.github.io/aurora-music/privacy.html) · [Termos de Uso](https://pajeeh.github.io/aurora-music/terms.html)
