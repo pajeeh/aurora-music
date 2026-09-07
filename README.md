@@ -5,7 +5,13 @@
   <p>Um player pessoal inspirado no que eu gosto nas melhores experiências de streaming, usando o player e as APIs oficiais do YouTube.</p>
 </div>
 
+<div align="center">
+  <a href="https://pajeeh.github.io/aurora-music/"><strong>Abrir o Aurora</strong></a>
+</div>
+
 ![Aurora no desktop](docs/screenshots/aurora-desktop.png)
+
+<p align="center"><img src="docs/screenshots/aurora-mobile.png" alt="Aurora em uma tela de celular" width="390" /></p>
 
 ## O que já funciona
 
@@ -16,6 +22,7 @@
 - busca real com a conta conectada ou uma chave da YouTube Data API;
 - curtidas e fila persistidas no dispositivo;
 - layout responsivo para desktop e telas pequenas;
+- instalação como aplicativo pelo navegador compatível (PWA);
 - estado local de “tocando agora” preparado para integrações.
 
 ## Aurora Now Playing
@@ -50,6 +57,10 @@ npm run build
 - O projeto é uma experiência pessoal, sem afiliação com Google, YouTube ou Spotify.
 
 [Política de Privacidade](https://pajeeh.github.io/aurora-music/privacy.html) · [Termos de Uso](https://pajeeh.github.io/aurora-music/terms.html)
+
+## Verificação
+
+A versão publicada foi homologada com a conta de teste autorizada: login e reconexão, persistência após recarga, playlists, busca, reprodução, pausa, troca de faixa, posição, fila e curtidas. A suíte automatizada cobre 19 cenários de autenticação, biblioteca e reprodução.
 
 ## Próximas faixas
 
