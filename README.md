@@ -80,7 +80,7 @@ Abra `http://127.0.0.1:4173/aurora-music/`. O Vite encaminha `/api/connect` ao s
 npm --prefix connect-service test
 ```
 
-O código do convite concede acesso à sessão: compartilhe apenas com pessoas convidadas. Tokens de pareamento ficam por aba, separados dos tokens Google. O serviço mantém sessões em memória, perde-as ao reiniciar e expira sessões após 12 horas de inatividade. Limites: 20 dispositivos e 200 faixas por sessão.
+O código do convite concede acesso à sessão: compartilhe apenas com pessoas convidadas. Tokens de pareamento ficam por aba, separados dos tokens Google. O serviço mantém sessões em memória por padrão; com `CONNECT_STATE_FILE` e volume persistente, recupera as sessões após reiniciar, com reprodução pausada. Expira sessões após 12 horas de inatividade. Limites: 20 dispositivos e 200 faixas por sessão. Veja [implantação do Connect](connect-service/README.md) e [card do perfil GitHub](now-playing-service/README.md).
 
 Esta é uma base local, não uma publicação do Connect: GitHub Pages sozinho não executa esse servidor. Para uso entre aparelhos reais, falta hospedar a API com HTTPS e encaminhamento na mesma origem, definir persistência e proteção de convites. Nenhuma porta de rede ou regra de firewall foi aberta. Não há descoberta automática de equipamentos, Chromecast, AirPlay ou integração com TVs/caixas de som.
 

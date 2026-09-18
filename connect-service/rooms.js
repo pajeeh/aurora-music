@@ -1,4 +1,6 @@
 import { randomBytes } from 'node:crypto';
+import { existsSync, readFileSync, writeFileSync, renameSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 export class RoomError extends Error { constructor(status, message) { super(message); this.status = status; } }
 const secret = () => randomBytes(24).toString('base64url');
 const fail = (status, message) => { throw new RoomError(status, message); };
@@ -7,7 +9,22 @@ function cleanTrack(track) {
   return Object.fromEntries(['id','title','artist','album','duration','artwork','accent'].map(key => [key, track[key].slice(0, key === 'artwork' ? 500 : 160)]));
 }
 export class Rooms {
-  constructor(now = Date.now) { this.rooms = new Map(); this.now = now; }
+  constructor(now = Date.now, stateFile) {
+    this.rooms = new Map(); this.now = now; this.stateFile=stateFile;
+    if(stateFile&&existsSync(stateFile)){
+      const data=JSON.parse(readFileSync(stateFile,'utf8'));
+      if(data.version!==1||!Array.isArray(data.rooms))throw new Error('Invalid Connect state file');
+      this.rooms=new Map(data.rooms.map(([code,room])=>[code,{...room,playback:{...room.playback,playing:false,command:room.playback.command+1},reported:{...room.reported,playing:false},members:new Map(room.members.map(([token,member])=>[token,{...member,lastSeen:0}]))}]));
+      this.sweep();
+    }
+  }
+  persist(){
+    if(!this.stateFile)return;
+    mkdirSync(dirname(this.stateFile),{recursive:true});
+    const rooms=[...this.rooms].map(([code,room])=>[code,{...room,members:[...room.members]}]);
+    writeFileSync(this.stateFile+'.tmp',JSON.stringify({version:1,rooms}),{mode:0o600});
+    renameSync(this.stateFile+'.tmp',this.stateFile);
+  }
   sweep() { for (const [code,room] of this.rooms) if (this.now() - room.touched > 12 * 3600000) this.rooms.delete(code); }
   create(name, queue = []) {
     this.sweep();

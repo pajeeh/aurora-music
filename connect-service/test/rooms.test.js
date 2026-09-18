@@ -2,7 +2,31 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Rooms } from '../rooms.js';
 import { createServer } from '../server.js';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 const track={id:'abcdefghijk',title:'Song',artist:'Artist',album:'YouTube',duration:'—',artwork:'',accent:'#9b7cff'};
+
+test('persistent sessions survive restart without treating disconnected devices as online',t=>{
+  const dir=mkdtempSync(join(tmpdir(),'aurora-connect-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));
+  let now=Date.now();const file=join(dir,'sessions.json');const rooms=new Rooms(()=>now,file);
+  const host=rooms.create('PC',[track]);const guest=rooms.join(host.code,'Phone');rooms.action(host.code,host.token,{type:'play',trackId:track.id});rooms.persist();
+  const restored=new Rooms(()=>now,file);
+  const state=restored.read(host.code,host.token);
+  assert.equal(state.playback.playing,false);assert.equal(state.reported.playing,false);
+  assert.equal(state.queue[0].track.id,track.id);assert.equal(state.members.find(m=>m.id===guest.memberId).online,false);
+  assert.throws(()=>restored.read(host.code,'invalid'),{status:401});
+  restored.action(host.code,host.token,{type:'leave'});restored.persist();
+  assert.throws(()=>new Rooms(()=>now,file).read(host.code,host.token),{status:404});
+});
+
+test('hosted Connect accepts preflight only for its configured app origin',async t=>{
+  const server=createServer(new Rooms(),'https://pajeeh.github.io');await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
+  const url=`http://127.0.0.1:${server.address().port}/api/connect/rooms`;
+  const response=await fetch(url,{method:'OPTIONS',headers:{Origin:'https://pajeeh.github.io','Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'authorization,content-type'}});
+  assert.equal(response.status,204);assert.equal(response.headers.get('access-control-allow-origin'),'https://pajeeh.github.io');
+  assert.equal((await fetch(url,{method:'OPTIONS',headers:{Origin:'https://attacker.example'}})).status,403);
+});
 test('invited guests append to the shared queue without acquiring playback privileges',()=>{
   const rooms=new Rooms();const host=rooms.create('PC');const guest=rooms.join(host.code,'Phone');
   rooms.action(host.code,guest.token,{type:'add',track});
