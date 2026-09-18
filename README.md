@@ -99,9 +99,9 @@ Para autorização Google que permaneça válida por dias sem cliques, falta imp
 
 A tela inicial usa a marca Aurora em cyan, azul, violeta e magenta, com ícones vetoriais consistentes e estados de foco, hover e seleção. O transporte compacto oferece fila, dispositivos, volume e silenciar, ordem aleatória e repetição na fila individual. As teclas de mídia usam Media Session nos navegadores compatíveis. Os painéis exibem apenas dispositivos efetivamente pareados; não simulam descoberta na rede.
 
-O conjunto aprovado está em `public/icons/`, com [galeria de ícones](https://pajeeh.github.io/aurora-music/icones-aurora.html) e [pacote ZIP](https://pajeeh.github.io/aurora-music/aurora-icons.zip). Os controles usam `src/icons.tsx`; os ícones reservados para funções futuras estão disponíveis no pacote, sem adicionar controles sem função. A colagem punk original continua preservada em `public/aurora-pirate-banner.png` e no showcase.
+O conjunto aprovado está em `public/icons/`, com [galeria de ícones](https://pajeeh.github.io/aurora-music/icones-aurora.html) e [pacote ZIP](https://pajeeh.github.io/aurora-music/aurora-icons.zip). Os controles usam `src/icons.tsx`; os ícones reservados para funções futuras estão disponíveis no pacote, sem adicionar controles sem função. A colagem punk original continua preservada em `public/aurora-pirate-banner.png`.
 
-O showcase está em `public/showcase.html`, publicado como `/aurora-music/showcase.html`. Apresenta o projeto gratuito e suas limitações reais. Não anuncia importação completa do YouTube Music nem Connect público antes dessas funções estarem prontas.
+O showcase está em `public/showcase.html` e `public/showcase.css`, publicado como `/aurora-music/showcase.html`. Apresenta a identidade neon, playlists, reprodução, letras e o conjunto de ícones. Não anuncia importação completa do YouTube Music nem Connect público antes dessas funções estarem prontas. A organização das branches e os critérios de integração estão em [CONTRIBUTING.md](CONTRIBUTING.md).
 
 O objetivo é não cobrar pelo uso do Aurora. Essa intenção não altera a licença do código nem os termos e direitos dos conteúdos reproduzidos pelo YouTube.
 
