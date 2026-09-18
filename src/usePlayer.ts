@@ -60,7 +60,18 @@ export function usePlayer(initialId: string, onEnded: () => void) {
   }, []);
   function load(id: string) { pending.current = { id, autoplay: true }; setError(''); setPosition(0); setDuration(0); setPlaying(false); if (readyRef.current) player.current?.loadVideoById(id); }
   function toggle() { if (!readyRef.current) return; if (playing) player.current?.pauseVideo(); else player.current?.playVideo(); }
+  function pause() { player.current?.pauseVideo(); }
+  function setPlayback(id: string, position: number, shouldPlay: boolean) {
+    if (!readyRef.current) return;
+    if (pending.current.id !== id) {
+      if (shouldPlay) player.current?.loadVideoById(id);
+      else player.current?.cueVideoById(id);
+    }
+    pending.current = { id, autoplay: shouldPlay };
+    player.current?.seekTo(position, true);
+    if (shouldPlay) player.current?.playVideo(); else player.current?.pauseVideo();
+  }
   function seek(seconds: number) { if (readyRef.current) { player.current?.seekTo(seconds, true); setPosition(seconds); } }
   function setVolume(value: number) { setVolumeState(value); if (readyRef.current) player.current?.setVolume(value); }
-  return { mount, ready, playing, position, duration, error, volume, load, toggle, seek, setVolume };
+  return { mount, ready, playing, position, duration, error, volume, load, toggle, seek, setVolume, pause, setPlayback };
 }

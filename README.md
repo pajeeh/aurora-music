@@ -53,14 +53,38 @@ npm run build
 - O áudio e o vídeo são fornecidos pelo player oficial do YouTube.
 - O Aurora não baixa nem intercepta mídia.
 - O acesso OAuth está em modo de testes e limitado às contas autorizadas no Google Cloud.
-- Tokens de acesso ficam na memória e, por até 50 minutos, no armazenamento local protegido pela origem do site para sobreviver a recargas. Sessões vencidas são removidas automaticamente e nenhum token entra no repositório.
+- Tokens respeitam a validade informada pelo Google e são descartados quando vencem. O perfil continua lembrado até sair explicitamente; renovar o acesso exige um clique. O armazenamento local não é um cofre: nenhum token deve ser compartilhado ou registrado em logs.
 - O projeto é uma experiência pessoal, sem afiliação com Google, YouTube ou Spotify.
 
 [Política de Privacidade](https://pajeeh.github.io/aurora-music/privacy.html) · [Termos de Uso](https://pajeeh.github.io/aurora-music/terms.html)
 
 ## Verificação
 
-A versão publicada foi homologada com a conta de teste autorizada: login e reconexão, persistência após recarga, playlists, busca, reprodução, pausa, troca de faixa, posição, fila e curtidas. A suíte automatizada cobre 19 cenários de autenticação, biblioteca e reprodução.
+A versão publicada anterior foi homologada com uma conta de teste autorizada. A revisão local atual possui 27 testes de autenticação, biblioteca, coleções e reprodução, além de 5 testes do Connect. A homologação OAuth real desta revisão ainda requer a conta autorizada do usuário.
+
+## Revisão local: biblioteca e Aurora Connect
+
+A biblioteca usa o visual escuro/violeta escolhido, com busca, filtros, playlists locais, curtidas locais e histórico. Playlists locais não modificam o YouTube. A consulta separada de curtidas do YouTube usa a API oficial somente para leitura; não promete equivalência completa à biblioteca do YouTube Music.
+
+Para testar o Connect, inicie em dois terminais:
+
+```bash
+npm --prefix connect-service start
+npm run build
+npm run preview -- --host=127.0.0.1 --port=4173
+```
+
+Abra `http://127.0.0.1:4173/aurora-music/`. O Vite encaminha `/api/connect` ao serviço em `127.0.0.1:8787`. Crie uma sessão e entre em outra aba pelo código. Participantes adicionam músicas; o anfitrião controla a fila e escolhe um reprodutor que tenha habilitado reprodução. O navegador pode exigir um clique para iniciar o áudio.
+
+```bash
+npm --prefix connect-service test
+```
+
+O código do convite concede acesso à sessão: compartilhe apenas com pessoas convidadas. Tokens de pareamento ficam por aba, separados dos tokens Google. O serviço mantém sessões em memória, perde-as ao reiniciar e expira sessões após 12 horas de inatividade. Limites: 20 dispositivos e 200 faixas por sessão.
+
+Esta é uma base local, não uma publicação do Connect: GitHub Pages sozinho não executa esse servidor. Para uso entre aparelhos reais, falta hospedar a API com HTTPS e encaminhamento na mesma origem, definir persistência e proteção de convites. Nenhuma porta de rede ou regra de firewall foi aberta. Não há descoberta automática de equipamentos, Chromecast, AirPlay ou integração com TVs/caixas de som.
+
+Para autorização Google que permaneça válida por dias sem cliques, falta implementar OAuth por código e renovação no servidor. O fluxo atual usa tokens temporários do Google Identity Services e não armazena refresh tokens no navegador.
 
 ## Próximas faixas
 
@@ -70,5 +94,13 @@ A versão publicada foi homologada com a conta de teste autorizada: login e reco
 - empacotamento para Windows e Android.
 
 ## Uso
+
+## Identidade punk e showcase
+
+A tela inicial usa uma colagem original em preto, papel creme e vermelho, sem sacrificar a legibilidade do player. O transporte compacto oferece fila, dispositivos, volume, ordem aleatória e repetição na fila individual. Os painéis exibem apenas dispositivos efetivamente pareados; não simulam descoberta na rede.
+
+O showcase está em `public/showcase.html`, publicado como `/aurora-music/showcase.html`. Apresenta o projeto gratuito e suas limitações reais. Não anuncia importação completa do YouTube Music nem Connect público antes dessas funções estarem prontas.
+
+O objetivo é não cobrar pelo uso do Aurora. Essa intenção não altera a licença do código nem os termos e direitos dos conteúdos reproduzidos pelo YouTube.
 
 Código-fonte publicado como portfólio pessoal. Nenhuma licença de redistribuição ou uso comercial é concedida.

@@ -1,228 +1,88 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { createRoot } from "react-dom/client";
-import { CirclePlay, Clock3, Disc3, Download, Heart, Home, Library, LogIn, Pause, Play, Radio, Search, Settings2, SkipBack, SkipForward, Sparkles, Volume2 } from "lucide-react";
-import { tracks as initialTracks } from "./catalog";
-import { connectGoogle, getYouTubeProfile, googleConnectionReady, prepareGoogleConnection } from "./google";
-import { searchYouTube } from "./youtube";
-import type { Track } from "./types";
-import { LibraryPanel } from './LibraryPanel';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import { ArrowLeft, ChevronDown, Heart, Home, Library, ListMusic, LogIn, Monitor, Pause, Play, Plus, Search, SkipBack, SkipForward, Users, Volume2, X, CirclePlay as Youtube } from 'lucide-react';
+import { tracks as initialTracks } from './catalog';
+import { searchYouTube } from './youtube';
+import type { Playlist } from './library-api';
 import { usePlayer } from './usePlayer';
 import { nextTrack, formatTime, readTracks } from './playback';
-import { clearGoogleSession, readGoogleSession, saveGoogleSession } from './auth-session';
+import { addToCollection, COLLECTIONS_KEY, createCollection, readCollections } from './collections';
 import { nowPlayingReady, publishNowPlaying } from './now-playing';
-import "./styles.css";
-import "./live.css";
+import { useConnect } from './connect';
+import { useAccount } from './useAccount';
+import { useLibrary } from './useLibrary';
+import { CollectionRow, Cover, Modal, TrackList } from './components';
+import type { Track } from './types';
+import { PlayerBar, type RepeatMode } from './PlayerBar';
+import { HomeStage } from './HomeStage';
+import { shuffleQueue } from './queue-order';
+import './styles.css';
+import './pirate.css';
 
-type View = "home" | "search" | "library";
-type InstallPromptEvent = Event & { prompt(): Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }> };
-
-function App() {
-  const showcase = new URLSearchParams(window.location.search).has('showcase');
-  const [cachedSession] = useState(() => readGoogleSession(localStorage));
-  const [view, setView] = useState<View>("home");
-  const [queue, setQueue] = useState<Track[]>(() => readTracks('aurora-queue-v1', initialTracks));
-  const [current, setCurrent] = useState(() => readTracks('aurora-current-v1', initialTracks)[0] ?? initialTracks[0]);
-  const player = usePlayer(current.id, () => skip(1));
-  const { playing } = player;
-  const [token, setToken] = useState<string | null>(cachedSession?.token ?? null);
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Track[]>(initialTracks);
-  const [loading, setLoading] = useState(false);
-  const [notice, setNotice] = useState("");
-  const [profile, setProfile] = useState<{name:string;avatar?:string} | null>(cachedSession?.profile ?? null);
-  const [connecting, setConnecting] = useState(false);
-  const [googleReady, setGoogleReady] = useState(false);
-  const [preparingGoogle, setPreparingGoogle] = useState(false);
-  const [accountNotice, setAccountNotice] = useState("");
-  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
-  const connection = useRef<AbortController | null>(null);
-  const [savedTracks, setSavedTracks] = useState<Track[]>(() => {
-    let legacy: string[] = [];
-    try { const value = JSON.parse(localStorage.getItem('aurora-liked') ?? '[]'); if (Array.isArray(value)) legacy = value; } catch { /* A damaged legacy value must not prevent startup. */ }
-    return readTracks('aurora-liked-tracks-v1', initialTracks.filter(track => legacy.includes(track.id)));
-  });
-  const liked = useMemo(() => savedTracks.map(track => track.id), [savedTracks]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('aurora-liked-tracks-v1', JSON.stringify(savedTracks));
-      localStorage.setItem('aurora-queue-v1', JSON.stringify(queue));
-      localStorage.setItem('aurora-current-v1', JSON.stringify([current]));
-    } catch { setNotice('Não foi possível salvar neste dispositivo. Verifique o espaço e as permissões do navegador.'); }
-  }, [savedTracks, queue, current]);
-  useEffect(() => {
-    let active = true;
-    if (googleConnectionReady()) {
-      setPreparingGoogle(true);
-      prepareGoogleConnection()
-        .then(() => { if (active) setGoogleReady(true); })
-        .catch(error => { if (active) setAccountNotice(error.message); })
-        .finally(() => { if (active) setPreparingGoogle(false); });
-    }
-    return () => { active = false; connection.current?.abort(); };
-  }, []);
-  useEffect(() => {
-    const receive = (event: Event) => { event.preventDefault(); setInstallPrompt(event as InstallPromptEvent); };
-    window.addEventListener('beforeinstallprompt', receive);
-    return () => window.removeEventListener('beforeinstallprompt', receive);
-  }, []);
-  useEffect(() => {
-    try { localStorage.setItem("aurora-now-playing", JSON.stringify({ track: current, playing, updatedAt: new Date().toISOString() })); } catch { /* Playback remains usable when storage is unavailable. */ }
-    if (token && nowPlayingReady()) publishNowPlaying(token, current, playing).catch(() => undefined);
-  }, [current, playing, token]);
-
-  async function connectAccount() {
-    if (connection.current || preparingGoogle) return;
-    setAccountNotice("");
-    if (!googleConnectionReady()) {
-      setAccountNotice("Falta configurar o identificador OAuth do Google para conectar sua conta.");
-      return;
-    }
-    if (!googleReady) {
-      setPreparingGoogle(true);
-      try {
-        await prepareGoogleConnection();
-        setGoogleReady(true);
-        setAccountNotice("Tudo pronto. Clique em Conectar YouTube para abrir a autorização.");
-      } catch (error) {
-        setAccountNotice(error instanceof Error ? error.message : "Falha ao preparar a conexão do Google.");
-      } finally { setPreparingGoogle(false); }
-      return;
-    }
-    const attempt = new AbortController();
-    connection.current = attempt;
-    setConnecting(true);
-    try {
-      const token = await connectGoogle(attempt.signal);
-      const youtubeProfile = await getYouTubeProfile(token, attempt.signal);
-      if (!attempt.signal.aborted) {
-        setProfile(youtubeProfile);
-        setToken(token);
-        try { saveGoogleSession(localStorage, { token, profile: youtubeProfile, expiresAt: Date.now() + 50 * 60 * 1000 }); } catch { /* A memory-only session still works. */ }
-        setAccountNotice("Conta conectada. Sua biblioteca e a busca já podem consultar o YouTube.");
-        setView('library');
-      }
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('expirou')) { clearGoogleSession(localStorage); setToken(null); setProfile(null); }
-      setAccountNotice(attempt.signal.aborted
-        ? "Tentativa cancelada. Feche a janela do Google antes de tentar novamente."
-        : error instanceof Error ? error.message : "Não foi possível conectar sua conta.");
-    } finally {
-      if (connection.current === attempt) {
-        connection.current = null;
-        setConnecting(false);
-      }
-    }
-  }
-
-  async function runSearch(event: React.FormEvent) {
-    event.preventDefault();
-    if (!query.trim()) return;
-    setLoading(true);
-    setNotice("");
-    try {
-      const remote = await searchYouTube(query.trim(), token);
-      if (remote) setResults(remote);
-      else {
-        const words = query.toLowerCase().split(/\s+/);
-        const local = initialTracks.filter(track => words.some(word => `${track.title} ${track.artist} ${track.album}`.toLowerCase().includes(word)));
-        setResults(local);
-        setNotice("Busca local de demonstração. Conecte sua conta para buscar no YouTube.");
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Erro inesperado na busca.";
-      if (message.includes('expirou')) disconnectAccount('Sua autorização expirou. Conecte novamente para continuar.');
-      setNotice(message);
-    } finally { setLoading(false); }
-  }
-
-  function disconnectAccount(message = 'Conta desconectada deste dispositivo.') {
-    connection.current?.abort();
-    clearGoogleSession(localStorage);
-    setToken(null); setProfile(null); setAccountNotice(message); setView('home');
-  }
-
-  async function installApp() {
-    if (!installPrompt) return;
-    await installPrompt.prompt();
-    await installPrompt.userChoice;
-    setInstallPrompt(null);
-  }
-
-  function play(track: Track, source?: Track[]) {
-    setCurrent(track);
-    player.load(track.id);
-    if (source) setQueue(Array.from(new Map(source.map(item => [item.id, item])).values()));
-    else if (!queue.some(item => item.id === track.id)) setQueue(items => [...items, track]);
-  }
-
-  function enqueue(track: Track) { setQueue(items => items.some(item => item.id === track.id) ? items : [...items, track]); }
-
-  function skip(direction: 1 | -1) {
-    const next = nextTrack(queue, current.id, direction);
-    if (next) play(next);
-  }
-
-  const likedTracks = savedTracks;
-
-  return <div className="app" style={{"--accent": current.accent} as React.CSSProperties}>
-    <aside className="sidebar">
-      <div className="brand"><div className="brand-mark"><Disc3 /></div><span>Aurora</span></div>
-      <nav>
-        <Nav active={view === "home"} icon={<Home />} label="Início" onClick={() => setView("home")} />
-        <Nav active={view === "search"} icon={<Search />} label="Buscar" onClick={() => setView("search")} />
-        <Nav active={view === "library"} icon={<Library />} label="Sua biblioteca" onClick={() => setView("library")} />
-      </nav>
-      <div className="sidebar-label">COLEÇÃO</div>
-      <button className="playlist-link" onClick={() => setView("library")}><span className="liked-icon"><Heart size={17} fill="currentColor" /></span><span><b>Músicas curtidas</b><small>{liked.length} faixas</small></span></button>
-      <button className="playlist-link" onClick={() => play(queue[0] ?? initialTracks[0])}><span className="daily-icon"><Sparkles size={17} /></span><span><b>Meu fluxo</b><small>Reproduzir sua fila</small></span></button>
-      <div className="live-status"><Radio size={16}/><span><b>Reprodução local</b><small>{playing ? "Tocando neste dispositivo" : "Player pausado"}</small></span><i className={playing ? "on" : ""}/></div>
-      <div className="sidebar-bottom"><CirclePlay size={17}/><span>Reprodução oficial<br/><b>YouTube</b></span></div>
-    </aside>
-
-    <main className="main">
-      <header><div/><div className="account-actions">{installPrompt && <button className="install-button" onClick={installApp}><Download/> Instalar</button>}<button className="account-button" disabled={connecting || preparingGoogle} onClick={profile ? () => setView('library') : connectAccount}>{profile?.avatar?<img src={profile.avatar} alt=""/>:<LogIn/>}<span>{connecting?"Conectando…":preparingGoogle?"Preparando conexão…":profile?.name??"Conectar YouTube"}</span></button>{connecting && <button className="account-cancel" onClick={() => connection.current?.abort()}>Cancelar</button>}{profile && <button className="account-cancel" onClick={() => disconnectAccount()}>Sair</button>}</div></header>
-      {accountNotice && <div className="notice account-notice" role="status"><Settings2/><span>{accountNotice}</span><button aria-label="Fechar aviso da conta" onClick={() => setAccountNotice("")}>×</button></div>}
-      {view === "home" && <HomeView play={play} current={current} playing={playing} showAll={() => setView('search')} />}
-      {view === "search" && <SearchView query={query} setQuery={setQuery} search={runSearch} results={results} loading={loading} notice={notice} play={play} />}
-      {view === "library" && <><section className="content"><LibraryPanel token={token} play={play} enqueue={enqueue} onAuthExpired={() => disconnectAccount('Sua autorização expirou. Conecte novamente para carregar a biblioteca.')}/></section><LibraryView tracks={likedTracks} play={play} /></>}
+type View='home'|'library'|'search'|'liked'|'collection'|'youtube';
+type Filter='Tudo'|'Playlists'|'Curtidas'|'Recentes';
+function App(){
+  const [notice,setNotice]=useState('');const account=useAccount(setNotice);
+  const library=useLibrary(account.token,account.expire,setNotice);
+  const [view,setView]=useState<View>('home');const [filter,setFilter]=useState<Filter>('Tudo');const [query,setQuery]=useState('');
+  const [queue,setQueue]=useState(()=>readTracks('aurora-queue-v1',initialTracks));
+  const [current,setCurrent]=useState(()=>readTracks('aurora-current-v1',initialTracks)[0] ?? initialTracks[0]);
+  const [saved,setSaved]=useState(()=>{let ids:string[]=[];try{const value=JSON.parse(localStorage.getItem('aurora-liked') ?? '[]');if(Array.isArray(value))ids=value;}catch{/* Recover legacy likes. */}return readTracks('aurora-liked-tracks-v1',initialTracks.filter(t=>ids.includes(t.id)));});
+  const [collections,setCollections]=useState(()=>readCollections(localStorage));const [recent,setRecent]=useState(()=>readTracks('aurora-recent-v1',[]));
+  const [selected,setSelected]=useState('');const [results,setResults]=useState<Track[]>([]);const [searchBusy,setSearchBusy]=useState(false);const searchSequence=useRef(0);
+  const [accountMenu,setAccountMenu]=useState(false);const [modal,setModal]=useState<'create'|'save'|'connect'|null>(null);
+  const [playlistName,setPlaylistName]=useState('');const [saveTrack,setSaveTrack]=useState<Track|null>(null);const [deviceName,setDeviceName]=useState('Meu dispositivo');const [joinCode,setJoinCode]=useState('');
+  const [panel,setPanel]=useState<'queue'|'devices'>('queue');
+  function showPanel(value:'queue'|'devices'){setPanel(value);if(window.matchMedia('(max-width:1100px)').matches)document.querySelector('.panel-tabs')?.scrollIntoView({block:'start',behavior:'smooth'});}
+  const [shuffle,setShuffle]=useState(false);const [repeat,setRepeat]=useState<RepeatMode>('off');const unshuffled=useRef<Track[]>([]);
+  function changeShuffle(value:boolean){setShuffle(value);if(value){unshuffled.current=queue;setQueue(shuffleQueue(queue,current.id));}else setQueue(items=>[...unshuffled.current.filter(track=>items.some(item=>item.id===track.id)),...items.filter(track=>!unshuffled.current.some(item=>item.id===track.id))]);}
+  const group=useConnect();
+  const localPlayer=usePlayer(current.id,()=>{if(group.state){if(group.isPlayer)void group.action({type:'ended',command:group.state.playback.command});}else if(repeat==='one')player.load(current.id);else skip(1);});
+  const player={...localPlayer,duration:group.state&&!group.isPlayer?(group.state.reported.duration ?? 0):localPlayer.duration};
+  const displayedQueue=group.state?.queue.map(item=>item.track) ?? queue;const displayedCurrent=group.state?.playback.track ?? current;
+  const selectedCollection=collections.find(item=>item.id===selected);const liked=useMemo(()=>new Set(saved.map(t=>t.id)),[saved]);
+  useEffect(()=>{try{localStorage.setItem('aurora-liked-tracks-v1',JSON.stringify(saved));localStorage.setItem('aurora-queue-v1',JSON.stringify(queue));localStorage.setItem('aurora-current-v1',JSON.stringify([current]));localStorage.setItem(COLLECTIONS_KEY,JSON.stringify(collections));localStorage.setItem('aurora-recent-v1',JSON.stringify(recent));}catch{setNotice('Não foi possível salvar neste dispositivo. Verifique as permissões e o espaço disponível.');}},[saved,queue,current,collections,recent]);
+  useEffect(()=>{try{localStorage.setItem('aurora-now-playing',JSON.stringify({track:current,playing:player.playing,updatedAt:new Date().toISOString()}));}catch{/* Playback is independent of storage. */}if(account.token&&nowPlayingReady()&&(!group.state||group.isPlayer))void publishNowPlaying(account.token,current,player.playing).catch(()=>undefined);},[current,player.playing,account.token,group.isPlayer]);
+  const commandKey=group.state?`${group.state.playerId}:${group.state.playback.command}`:'local';
+  const previousGroup=useRef(false);
+  useEffect(()=>{if(!group.state){if(previousGroup.current)player.pause();previousGroup.current=false;return;}previousGroup.current=true;if(!group.isPlayer){player.pause();return;}const playback=group.state.playback;if(playback.track&&player.ready){setCurrent(playback.track);player.setPlayback(playback.track.id,playback.position,playback.playing);}},[commandKey,player.ready]);
+  useEffect(()=>{if(group.pair&&group.error)player.pause();},[group.error]);
+  const telemetry=useRef({playing:player.playing,position:player.position,duration:player.duration});telemetry.current={playing:player.playing,position:player.position,duration:player.duration};
+  useEffect(()=>{if(!group.state||!group.isPlayer)return;const timer=setInterval(()=>{void group.action({type:'report',...telemetry.current});},2000);return()=>clearInterval(timer);},[group.isPlayer,group.pair]);
+  function navigate(next:View){library.cancel();setSearchBusy(false);searchSequence.current++;setView(next);setQuery('');}
+  function openCollection(id:string){setSelected(id);navigate('collection');}
+  function openRemote(playlist:Playlist|null,likes=false){if(!account.token){setNotice('Conecte ou renove o acesso ao YouTube pelo botão da conta.');return;}navigate('youtube');void library.load(playlist,likes);}
+  async function play(track:Track,source?:Track[]){if(group.pair){await group.action({type:'add',track});if(group.isHost)await group.action({type:'play',trackId:track.id});else setNotice('Faixa adicionada à sessão. O anfitrião controla a reprodução.');return;}setCurrent(track);player.load(track.id);setRecent(items=>[track,...items.filter(t=>t.id!==track.id)].slice(0,30));if(source){setShuffle(false);setQueue(Array.from(new Map(source.map(t=>[t.id,t])).values()));}else setQueue(items=>items.some(t=>t.id===track.id)?items:[...items,track]);}
+  function enqueue(track:Track){if(group.pair)void group.action({type:'add',track});else setQueue(items=>items.some(t=>t.id===track.id)?items:[...items,track]);setNotice('Faixa adicionada à fila.');}
+  function skip(direction:1|-1){if(group.state){if(group.isHost)void group.action({type:direction===1?'next':'previous'});return;}const next=nextTrack(queue,current.id,direction) ?? (repeat==='all'?(direction===1?queue[0]:queue.at(-1)):undefined);if(next)void play(next);}
+  function toggleLike(track:Track){setSaved(items=>items.some(t=>t.id===track.id)?items.filter(t=>t.id!==track.id):[track,...items]);}
+  function openSave(track:Track){setSaveTrack(track);setModal('save');}
+  function newPlaylist(event:React.FormEvent){event.preventDefault();try{const value=createCollection(playlistName,crypto.randomUUID());setCollections(items=>[value,...items]);setPlaylistName('');setModal(null);openCollection(value.id);}catch(error){setNotice((error as Error).message);}}
+  async function search(event:React.FormEvent){event.preventDefault();if(!query.trim())return;const sequence=++searchSequence.current;setSearchBusy(true);try{const data=await searchYouTube(query.trim(),account.token);if(sequence!==searchSequence.current)return;setResults(data ?? initialTracks.filter(t=>`${t.title} ${t.artist}`.toLowerCase().includes(query.toLowerCase().trim())));if(!data)setNotice('Busca no catálogo de demonstração. Conecte sua conta para buscar no YouTube.');}catch(error){if(sequence===searchSequence.current){if((error as Error).message.includes('expirou'))account.expire(account.token);else setNotice((error as Error).message);}}finally{if(sequence===searchSequence.current)setSearchBusy(false);}}
+  const match=(value:string)=>value.toLocaleLowerCase().includes(query.toLocaleLowerCase().trim());const canControl=!group.pair||group.isHost;
+  const playing=group.state?(group.isPlayer?player.playing:group.state.reported.playing):player.playing;const position=group.state&&!group.isPlayer?group.state.reported.position:player.position;
+  const title=view==='library'?'Sua biblioteca':view==='liked'?'Músicas curtidas':view==='collection'?selectedCollection?.title ?? 'Playlist':view==='youtube'?library.title:view==='search'?'Buscar':'Continue ouvindo';
+  let shownTracks=view==='liked'?saved:view==='home'?recent:view==='collection'?selectedCollection?.tracks ?? []:view==='youtube'?library.tracks:results;
+  if(view!=='search')shownTracks=shownTracks.filter(t=>match(`${t.title} ${t.artist}`));
+  const upcoming=displayedQueue.slice(Math.max(0,displayedQueue.findIndex(t=>t.id===displayedCurrent.id)+1));
+  const trackList=(tracks:Track[],removable=false)=><TrackList tracks={tracks} liked={liked} play={play} like={toggleLike} enqueue={enqueue} save={openSave} remove={removable?(track)=>setCollections(items=>items.map(item=>item.id===selected?{...item,tracks:item.tracks.filter(t=>t.id!==track.id)}:item)):undefined}/>;
+  return <div className="app">
+    <aside className="sidebar"><a className="brand" href="#" onClick={event=>{event.preventDefault();navigate('library');}}><img src={`${import.meta.env.BASE_URL}aurora-icon.svg`} alt=""/>Aurora</a><nav aria-label="Navegação principal">{([{id:'home',label:'Início',icon:Home},{id:'search',label:'Buscar',icon:Search},{id:'library',label:'Biblioteca',icon:Library}] as const).map(item=><button key={item.id} className={view===item.id?'active':''} onClick={()=>navigate(item.id)}><item.icon/><span>{item.label}</span></button>)}</nav><h2 className="sidebar-label">SUAS COLEÇÕES</h2><button className={`collection-link ${view==='liked'?'active':''}`} onClick={()=>navigate('liked')}><Heart className="liked-cover" fill="currentColor"/><span><b>Músicas curtidas</b><small>{saved.length} faixas · Aurora</small></span></button><div className="sidebar-collections">{collections.map(item=><button className="collection-link" key={item.id} onClick={()=>openCollection(item.id)}><Cover artwork={item.tracks[0]?.artwork}/><span><b>{item.title}</b><small>{item.tracks.length} faixas · local</small></span></button>)}{library.playlists.slice(0,8).map(item=><button className="collection-link" key={item.id} onClick={()=>openRemote(item)}><Cover artwork={item.artwork}/><span><b>{item.title}</b><small>YouTube</small></span></button>)}</div><button className="new-playlist" onClick={()=>setModal('create')}><Plus/>Nova playlist</button><button className="connect-launch" onClick={()=>setModal('connect')}><Monitor/><span>{group.state?'Sessão conectada':'Aurora Connect'}</span></button><small className="sidebar-foot">Sua música. Suas regras.<br/>Reprodução oficial pelo YouTube</small></aside>
+    <main className="main"><header><form className="global-search" onSubmit={event=>{if(view==='search')void search(event);else event.preventDefault();}}><Search/><input aria-label={view==='search'?'Buscar no YouTube':'Buscar na sua biblioteca'} placeholder={view==='search'?'Músicas, artistas ou vídeos':'Buscar na sua biblioteca'} value={query} onChange={event=>setQuery(event.target.value)}/>{view==='search'&&<button type="submit" disabled={searchBusy}>Buscar</button>}</form><div className="account-wrap"><button className="account-button" aria-label={account.profile?`Conta de ${account.profile.name}`:'Conectar YouTube'} onClick={()=>{if(!account.profile)void account.connect();else setAccountMenu(value=>!value);}} disabled={account.busy}><span className="account-avatar">{account.profile?.avatar?<img src={account.profile.avatar} alt=""/>:<LogIn/>}</span><span>{account.busy?'Conectando…':account.profile?`${account.profile.name}${account.token?'':' · renovar'}`:'Conectar YouTube'}</span><ChevronDown/></button>{account.busy&&<button onClick={account.cancel}>Cancelar</button>}{accountMenu&&<div className="account-menu"><button onClick={()=>{setAccountMenu(false);void account.connect();}}>Renovar acesso</button><button onClick={()=>{setAccountMenu(false);account.logout();}}>Sair da conta</button></div>}</div></header>
+      {notice&&<div className="notice" role="status"><span>{notice}</span><button aria-label="Fechar aviso" onClick={()=>setNotice('')}><X/></button></div>}
+      <section className={`content ${view==='home'?'home-content':''}`}>{(view==='collection'||view==='youtube')&&<button className="back-button" onClick={()=>navigate('library')}><ArrowLeft/>Biblioteca</button>}{view!=='home'&&<h1>{title}</h1>}
+      {view==='home'?<HomeStage track={displayedCurrent} liked={liked.has(displayedCurrent.id)} like={()=>toggleLike(displayedCurrent)} play={()=>{if(canControl)void play(displayedCurrent);else enqueue(displayedCurrent);}} collections={collections} open={openCollection} create={()=>setModal('create')} browse={()=>navigate('library')}/>:view==='library'?<><div className="library-toolbar"><div className="filters" role="group" aria-label="Filtrar biblioteca">{(['Tudo','Playlists','Curtidas','Recentes'] as Filter[]).map(item=><button key={item} className={filter===item?'selected':''} aria-pressed={filter===item} onClick={()=>setFilter(item)}>{item}</button>)}</div><button className="outline-button" onClick={()=>setModal('create')}><Plus/>Nova playlist</button></div>
+        {filter==='Recentes'?trackList(recent.filter(t=>match(`${t.title} ${t.artist}`))):<div className="collection-table"><div className="collection-head"><span>#</span><span>TÍTULO</span><span>ORIGEM</span><span>FAIXAS</span><span/></div>{(filter==='Tudo'||filter==='Curtidas')&&match('Músicas curtidas')&&<CollectionRow index={1} title="Músicas curtidas" origin="Neste dispositivo" count={saved.length} liked onOpen={()=>navigate('liked')} onPlay={()=>{if(saved[0])void play(saved[0],saved);else navigate('liked');}}/>}{(filter==='Tudo'||filter==='Curtidas')&&account.token&&match('Curtidas do YouTube')&&<CollectionRow index={2} title="Curtidas do YouTube" origin="YouTube" count={null} liked onOpen={()=>openRemote(null,true)} onPlay={()=>openRemote(null,true)}/>}{filter!=='Curtidas'&&collections.filter(item=>match(item.title)).map((item,index)=><CollectionRow key={item.id} index={index+2} title={item.title} origin="Neste dispositivo" count={item.tracks.length} artwork={item.tracks[0]?.artwork} onOpen={()=>openCollection(item.id)} onPlay={()=>{if(item.tracks[0])void play(item.tracks[0],item.tracks);else openCollection(item.id);}}/>)}{filter!=='Curtidas'&&library.playlists.filter(item=>match(item.title)).map((item,index)=><CollectionRow key={item.id} index={index+collections.length+2} title={item.title} origin="YouTube" count={item.count} artwork={item.artwork} onOpen={()=>openRemote(item)} onPlay={()=>openRemote(item)}/>)}{filter!=='Curtidas'&&!collections.length&&!library.playlists.length&&<div className="library-empty"><ListMusic/><h2>Sua coleção começa aqui</h2><p>Crie uma playlist no Aurora ou conecte o YouTube para consultar as suas.</p></div>}{library.next&&filter!=='Curtidas'&&<button className="outline-button load-more" disabled={library.busy} onClick={()=>void library.morePlaylists()}>Carregar mais playlists</button>}</div>}
+        <div className="resume-strip"><div><b>Retomar</b><small>Continue de onde parou</small></div><Cover artwork={displayedCurrent.artwork}/><div className="resume-track"><b>{displayedCurrent.title}</b><small>{displayedCurrent.artist}</small></div><button className="round-button" aria-label="Retomar reprodução" disabled={!canControl} onClick={()=>void play(displayedCurrent)}><Play fill="currentColor"/></button></div></>:<>
+        {view==='liked'&&<p className="section-description">{saved.length} faixas curtidas no Aurora, salvas neste dispositivo. <button className="text-button" onClick={()=>openRemote(null,true)}>Ver curtidas do YouTube</button></p>}{view==='collection'&&<p className="section-description">Playlist local · {selectedCollection?.tracks.length ?? 0} faixas · não altera sua conta YouTube</p>}{view==='youtube'&&<p className="section-description">YouTube · somente leitura · esta consulta pode não incluir toda a biblioteca do YouTube Music.</p>}{shownTracks.length>0&&view!=='search'&&<button className="primary-button" onClick={()=>void play(shownTracks[0],shownTracks)}><Play fill="currentColor"/>Reproduzir faixas carregadas</button>}{(searchBusy||library.busy)&&<p role="status">Carregando…</p>}{trackList(shownTracks,view==='collection')}{!shownTracks.length&&!searchBusy&&!library.busy&&<div className="library-empty"><ListMusic/><h2>{view==='search'?'Encontre sua próxima música':'Ainda não há faixas aqui'}</h2><p>{view==='collection'?'Busque uma música e use “Salvar em playlist” para adicioná-la.':view==='liked'?'Use o coração ao lado das músicas para salvar suas favoritas.':'Use a busca ou conecte sua conta para carregar músicas.'}</p>{view!=='search'&&<button className="outline-button" onClick={()=>navigate('search')}><Search/>Buscar músicas</button>}</div>}{view==='youtube'&&library.trackNext&&<button className="outline-button load-more" disabled={library.busy} onClick={()=>void library.moreTracks()}>Carregar mais faixas</button>}</>}
+      </section>
     </main>
-
-    <aside className="rightbar">
-      <div className="right-title"><span>Tocando agora</span></div>
-      <div className="now-art"><img src={current.artwork}/><span className="yt-badge"><CirclePlay size={15}/> YouTube</span></div>
-      <h2>{current.title}</h2><p>{current.artist}</p>
-      <div className="about"><b>Sobre a reprodução</b><span>O áudio é fornecido pelo player oficial do YouTube.</span></div>
-      <div className="queue-title"><b>Fila · {queue.length} faixas</b></div>
-      {queue.map(track => <button className={`queue-row ${track.id === current.id ? 'current' : ''}`} key={track.id} onClick={() => play(track)}><img src={track.artwork}/><span><b>{track.title}</b><small>{track.id === current.id ? 'Faixa selecionada' : track.artist}</small></span><Play/></button>)}
-    </aside>
-
-    <footer className="playerbar">
-      <div className="track-mini"><img src={current.artwork}/><span><b>{current.title}</b><small>{current.artist}</small></span><button aria-label={liked.includes(current.id) ? 'Descurtir faixa' : 'Curtir faixa'} aria-pressed={liked.includes(current.id)} onClick={() => setSavedTracks(items => items.some(item => item.id === current.id) ? items.filter(item => item.id !== current.id) : [...items,current])}><Heart fill={liked.includes(current.id) ? "currentColor" : "none"}/></button></div>
-      <div className="controls"><div><button aria-label="Faixa anterior" disabled={!player.ready || !nextTrack(queue, current.id, -1)} onClick={() => skip(-1)}><SkipBack/></button><button className="play" aria-label={playing ? 'Pausar' : 'Reproduzir'} disabled={!player.ready} onClick={player.toggle}>{playing ? <Pause fill="currentColor"/> : <Play fill="currentColor"/>}</button><button aria-label="Próxima faixa" disabled={!player.ready || !nextTrack(queue, current.id, 1)} onClick={() => skip(1)}><SkipForward/></button></div><div className="timeline"><span>{formatTime(player.position)}</span><input aria-label="Posição da reprodução" type="range" min="0" max={player.duration || 1} step="1" value={Math.min(player.position, player.duration || 1)} disabled={!player.ready || !player.duration} onChange={event => player.seek(Number(event.target.value))}/><span>{formatTime(player.duration)}</span></div></div>
-      <div className="volume"><Volume2/><input aria-label="Volume" type="range" min="0" max="100" value={player.volume} disabled={!player.ready} onChange={event => player.setVolume(Number(event.target.value))}/></div>
-    </footer>
-
-    <div className={`youtube-frame visible ${showcase ? 'showcase' : ''}`}>
-      {player.error && !showcase && <div className="player-error" role="alert">{player.error} <a href={`https://www.youtube.com/watch?v=${current.id}`} target="_blank" rel="noreferrer">Abrir no YouTube</a></div>}
-      <div className="player-mount" ref={player.mount}/>
-    </div>
+    <aside className="rightbar"><h2>Tocando agora</h2><div className="youtube-frame"><div className="player-mount" ref={player.mount}/></div>{player.error&&<p className="player-error" role="alert">{player.error} <a href={`https://www.youtube.com/watch?v=${current.id}`} target="_blank" rel="noreferrer">Abrir no YouTube</a></p>}<div className="now-title"><h3>{displayedCurrent.title}</h3><button aria-label={liked.has(displayedCurrent.id)?'Descurtir faixa atual':'Curtir faixa atual'} aria-pressed={liked.has(displayedCurrent.id)} onClick={()=>toggleLike(displayedCurrent)}><Heart fill={liked.has(displayedCurrent.id)?'currentColor':'none'}/></button></div><p>{displayedCurrent.artist}</p><span className="origin-label"><Youtube/>YouTube</span>{group.state&&<p className="group-status">{group.state.members.find(m=>m.id===group.state?.playerId)?.name} · {group.state.members.find(m=>m.id===group.state?.playerId)?.online?'online':'indisponível'}</p>}<div className="panel-tabs" role="group" aria-label="Painel do player"><button aria-pressed={panel==='queue'} onClick={()=>setPanel('queue')}>Fila</button><button aria-pressed={panel==='devices'} onClick={()=>setPanel('devices')}>Dispositivos</button></div>{panel==='queue'?<><div className="queue-heading"><h3>Próximas na fila</h3><span>{upcoming.length}</span></div><div className="queue-list">{upcoming.map((track,index)=><div className="queue-row" key={track.id}><span>{index+1}</span><Cover artwork={track.artwork}/><button className="queue-track" disabled={!canControl} onClick={()=>void play(track)}><b>{track.title}</b><small>{group.state?.queue.find(item=>item.track.id===track.id)?.addedBy ?? track.artist}</small></button><button className="icon-button" aria-label={`Remover ${track.title} da fila`} disabled={!canControl} onClick={()=>{if(group.state)void group.action({type:'remove',trackId:track.id});else setQueue(items=>items.filter(t=>t.id!==track.id));}}><X/></button></div>)}{!upcoming.length&&<div className="queue-empty"><ListMusic/><h3>Sua fila está vazia</h3><p>Use “Adicionar à fila” no menu de uma música.</p><button className="outline-button" onClick={()=>navigate('search')}>Buscar músicas</button></div>}</div></>:<section className="connect-panel"><h3>Onde o som acontece</h3><div className="this-device"><Monitor/><span>Este navegador<small>{group.isPlayer?'Saída local':group.state?'Participante da sessão':'Reprodução individual'}</small></span></div>{group.state?<div className="device-list">{group.state.members.map(member=><div key={member.id}><Monitor/><span><b>{member.name}</b><small>{member.online?'Online':'Indisponível'}</small></span>{member.id===group.state?.playerId?<span className="device-badge">Reprodutor</span>:group.isHost&&<button disabled={!member.canPlay||!member.online} onClick={()=>void group.action({type:'device',memberId:member.id})}>Usar</button>}</div>)}</div>:<><h4>Nenhum outro dispositivo conectado</h4><p>Abra o Aurora em outro aparelho e entre na mesma sessão pelo código do convite.</p><p>Não há descoberta automática de TVs ou caixas de som.</p></>}<button className="primary-button" onClick={()=>setModal('connect')}><Users/>{group.state?'Gerenciar sessão':'Criar ou entrar em sessão'}</button><small className="connect-availability">Connect em teste local. Ainda não está disponível no site público.</small></section>}</aside>
+    <PlayerBar track={displayedCurrent} liked={liked.has(displayedCurrent.id)} like={()=>toggleLike(displayedCurrent)} playing={playing} ready={!!group.state||player.ready} canControl={canControl} previous={nextTrack(displayedQueue,displayedCurrent.id,-1)||(!group.pair&&repeat==='all')?()=>skip(-1):undefined} next={nextTrack(displayedQueue,displayedCurrent.id,1)||(!group.pair&&repeat==='all')?()=>skip(1):undefined} toggle={()=>{if(group.state)void group.action({type:'toggle'});else player.toggle();}} position={position} duration={player.duration} seek={value=>{if(group.state)void group.action({type:'seek',position:value});else player.seek(value);}} volume={player.volume} setVolume={player.setVolume} panel={panel} setPanel={showPanel} shuffle={shuffle} setShuffle={changeShuffle} repeat={repeat} setRepeat={setRepeat} grouped={!!group.pair}/>
+    {modal==='create'&&<Modal title="Nova playlist" close={()=>setModal(null)}><form onSubmit={newPlaylist}><label>Nome da playlist<input autoFocus maxLength={100} value={playlistName} onChange={event=>setPlaylistName(event.target.value)} required/></label><p>Salva neste dispositivo. Sua conta YouTube não será alterada.</p><button className="primary-button" type="submit"><Plus/>Criar playlist</button></form></Modal>}
+    {modal==='save'&&saveTrack&&<Modal title="Salvar em playlist" close={()=>setModal(null)}><p>{saveTrack.title}</p>{collections.map(item=><button className="save-option" key={item.id} onClick={()=>{setCollections(items=>items.map(collection=>collection.id===item.id?addToCollection(collection,saveTrack):collection));setModal(null);setNotice(`Salva em ${item.title}.`);}}><ListMusic/>{item.title}</button>)}{!collections.length&&<p>Crie sua primeira playlist para organizar as músicas.</p>}<button className="outline-button" onClick={()=>setModal('create')}><Plus/>Nova playlist</button></Modal>}
+    {modal==='connect'&&<Modal title="Aurora Connect" close={()=>setModal(null)}><p>Uma fila compartilhada. Um aparelho reproduz; os outros participam.</p>{group.error&&<p className="player-error" role="alert">{group.error}</p>}{!group.state?<><label>Nome deste dispositivo<input autoFocus value={deviceName} maxLength={50} onChange={event=>setDeviceName(event.target.value)}/></label><button className="primary-button" disabled={group.busy} onClick={()=>void group.enter(deviceName,queue)}><Users/>Criar sessão</button><form onSubmit={event=>{event.preventDefault();void group.enter(deviceName,undefined,joinCode);}}><label>Código do convite<input value={joinCode} onChange={event=>setJoinCode(event.target.value)} maxLength={12} required/></label><button className="outline-button" disabled={group.busy}>Entrar na sessão</button></form><small>Conecte apenas dispositivos convidados. TVs e caixas de som ainda não são suportadas.</small></>:<><label>Código para convidar<input readOnly value={group.state.code}/></label><p>{group.isHost?'Você é o anfitrião. Participantes podem adicionar faixas.':'Você pode adicionar músicas à fila. O anfitrião controla a reprodução.'}</p><button className="outline-button" onClick={()=>{player.pause();void group.action({type:'ready'});setNotice('Dispositivo habilitado. O anfitrião pode selecioná-lo; talvez seja necessário clicar no player para iniciar áudio.');}}><Monitor/>Habilitar reprodução aqui</button><div className="device-list">{group.state.members.map(member=><div key={member.id}><Monitor/><span><b>{member.name}</b><small>{member.online?'Online':'Indisponível'} · {member.host?'anfitrião':'participante'}</small></span>{member.id===group.state?.playerId?<span className="device-badge">Reprodutor</span>:group.isHost&&<button disabled={!member.canPlay||!member.online} onClick={()=>void group.action({type:'device',memberId:member.id})}>Usar</button>}</div>)}</div><button className="outline-button" onClick={()=>{player.pause();void group.action({type:'leave'});}}>{group.isHost?'Encerrar sessão':'Sair da sessão'}</button></>}</Modal>}
   </div>;
 }
-
-function Nav({active, icon, label, onClick}:{active:boolean;icon:React.ReactNode;label:string;onClick:()=>void}) { return <button className={active ? "active" : ""} onClick={onClick}>{icon}<span>{label}</span></button> }
-
-function HomeView({play,current,playing,showAll}:{play:(t:Track)=>void;current:Track;playing:boolean;showAll:()=>void}) { return <section className="content">
-  <div className="greeting"><span>BOA TARDE</span><h1>O som certo,<br/>na hora certa.</h1><p>Sua música, organizada do seu jeito.</p></div>
-  <h3>Atalhos para você</h3><div className="quick-grid">{initialTracks.slice(0,4).map(track => <button onClick={() => play(track)} key={track.id}><img src={track.artwork}/><b>{track.title}</b><span className="round-play">{current.id===track.id&&playing?<Pause fill="currentColor"/>:<Play fill="currentColor"/>}</span></button>)}</div>
-  <div className="section-head"><div><h2>Feito para o seu momento</h2><p>Seleções para entrar no ritmo.</p></div><button onClick={showAll}>Buscar mais</button></div>
-  <div className="card-grid">{initialTracks.map(track => <button className="music-card" onClick={() => play(track)} key={track.id}><div><img src={track.artwork}/><span><Play fill="currentColor"/></span></div><b>{track.title}</b><small>{track.artist}</small></button>)}</div>
-</section> }
-
-function SearchView({query,setQuery,search,results,loading,notice,play}:{query:string;setQuery:(v:string)=>void;search:(e:React.FormEvent)=>void;results:Track[];loading:boolean;notice:string;play:(t:Track)=>void}) { return <section className="content search-view"><h1>Buscar</h1><form onSubmit={search}><Search/><input autoFocus value={query} onChange={e=>setQuery(e.target.value)} placeholder="O que você quer ouvir?"/><button>{loading?"Buscando…":"Buscar"}</button></form>{notice&&<div className="notice"><Settings2/>{notice}</div>}<div className="track-table"><div className="table-head"><span>#</span><span>TÍTULO</span><span>ÁLBUM</span><Clock3/></div>{results.map((track,index)=><button key={track.id} onClick={()=>play(track)}><span>{index+1}</span><span className="table-track"><img src={track.artwork}/><span><b>{track.title}</b><small>{track.artist}</small></span></span><span>{track.album}</span><span>{track.duration}</span></button>)}</div></section> }
-
-function LibraryView({tracks,play}:{tracks:Track[];play:(t:Track)=>void}) { return <section className="content library-view"><div className="library-hero"><div><Heart fill="white"/></div><span><small>PLAYLIST</small><h1>Músicas curtidas</h1><p>{tracks.length} faixas salvas neste dispositivo</p></span></div>{tracks.length?<div className="track-table">{tracks.map((track,index)=><button key={track.id} onClick={()=>play(track)}><span>{index+1}</span><span className="table-track"><img src={track.artwork}/><span><b>{track.title}</b><small>{track.artist}</small></span></span><span>{track.album}</span><span>{track.duration}</span></button>)}</div>:<div className="empty"><Heart/><h2>Suas favoritas aparecerão aqui</h2><p>Curta uma música pelo coração no player.</p></div>}</section> }
-
-createRoot(document.getElementById("root")!).render(<React.StrictMode><App/></React.StrictMode>);
-
-if ('serviceWorker' in navigator && import.meta.env.PROD) window.addEventListener('load', () => navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => undefined));
+createRoot(document.getElementById('root')!).render(<React.StrictMode><App/></React.StrictMode>);
+if('serviceWorker' in navigator&&import.meta.env.PROD)window.addEventListener('load',()=>navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(()=>undefined));

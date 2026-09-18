@@ -31,3 +31,8 @@ export async function listPlaylistTracks(token: string, playlist: Playlist, page
   }));
   return { items, nextPageToken: page.nextPageToken, skipped: (page.items?.length ?? 0) - items.length };
 }
+
+export async function listLikedTracks(token: string, pageToken = '', signal?: AbortSignal) {
+  const page = await youtubePage(token, 'videos', { part: 'snippet', myRating: 'like', maxResults: '50', ...(pageToken ? { pageToken } : {}) }, signal);
+  return { items: (page.items ?? []).map(item => ({ id: item.id, title: item.snippet?.title ?? 'Vídeo', artist: item.snippet?.channelTitle ?? 'YouTube', album: 'Curtidas do YouTube', duration: '—', artwork: item.snippet?.thumbnails?.high?.url ?? item.snippet?.thumbnails?.medium?.url ?? '', accent: '#9b7cff' })), nextPageToken: page.nextPageToken };
+}

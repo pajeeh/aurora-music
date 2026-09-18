@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { listPlaylists, listPlaylistTracks } from '../src/library-api.ts';
+import { listPlaylists, listPlaylistTracks, listLikedTracks } from '../src/library-api.ts';
 import { nextTrack, formatTime, validTracks } from '../src/playback.ts';
 
 test('library uses a read-only authorized request and returns pagination', async context => {
@@ -47,4 +47,12 @@ test('real playback timestamps cover minutes, hours and invalid values', () => {
 });
 test('damaged saved tracks are rejected', () => {
   assert.deepEqual(validTracks(null), []); assert.deepEqual(validTracks([{ id: 'invalid' }]), []);
+});
+
+test('YouTube likes are read-only, separate from local favorites, and paginated', async context => {
+  context.mock.method(globalThis,'fetch',async(url,options)=>{
+    const parsed=new URL(url);assert.equal(parsed.pathname,'/youtube/v3/videos');assert.equal(parsed.searchParams.get('myRating'),'like');assert.equal(parsed.searchParams.get('pageToken'),'next');assert.equal(options.headers.Authorization,'Bearer test-token');
+    return Response.json({items:[{id:'abcdefghijk',snippet:{title:'Liked video',channelTitle:'Artist'}}],nextPageToken:'more'});
+  });
+  const page=await listLikedTracks('test-token','next');assert.equal(page.items[0].album,'Curtidas do YouTube');assert.equal(page.nextPageToken,'more');
 });

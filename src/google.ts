@@ -1,4 +1,4 @@
-import { requestGoogleToken, type GoogleOAuth } from "./google-token";
+import { requestGoogleGrant, type GoogleOAuth, type GoogleGrant } from "./google-token";
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
@@ -45,10 +45,10 @@ export function googleConnectionReady() {
   return Boolean(CLIENT_ID);
 }
 
-export function connectGoogle(signal?: AbortSignal): Promise<string> {
+export function connectGoogle(signal?: AbortSignal, renew = false): Promise<GoogleGrant> {
   if (!CLIENT_ID) throw new Error("Falta configurar o identificador OAuth do Google.");
   if (!window.google?.accounts?.oauth2) throw new Error("A conexão com o Google ainda está carregando. Tente novamente em instantes.");
-  return requestGoogleToken(window.google.accounts.oauth2, CLIENT_ID, signal);
+  return requestGoogleGrant(window.google.accounts.oauth2, CLIENT_ID, signal, renew);
 }
 
 export async function getYouTubeProfile(accessToken: string, signal?: AbortSignal) {

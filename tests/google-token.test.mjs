@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { AURORA_SCOPES, requestGoogleToken, YOUTUBE_READ_SCOPE } from '../src/google-token.ts';
+import { AURORA_SCOPES, requestGoogleToken, requestGoogleGrant, YOUTUBE_READ_SCOPE } from '../src/google-token.ts';
 
 // Test the real adapter at Google's callback boundary, without credentials or network.
 function googleBoundary() {
@@ -76,4 +76,18 @@ test('times out when Google never responds', async context => {
   const rejected = assert.rejects(result, /não foi concluída/);
   context.mock.timers.tick(120_000);
   await rejected;
+});
+
+test('uses the actual Google token lifetime and avoids forcing account selection on renewal', async () => {
+  const google = googleBoundary();const before=Date.now();
+  const result=requestGoogleGrant(google.oauth,'test-client',undefined,true);
+  google.config.callback({access_token:'test',scope:YOUTUBE_READ_SCOPE,expires_in:120});
+  const grant=await result;
+  assert.equal(grant.token,'test');assert.ok(grant.expiresAt>=before+120000 && grant.expiresAt<=Date.now()+120000);
+});
+
+test('rejects an unusable token lifetime', async () => {
+  const google=googleBoundary();const result=requestGoogleGrant(google.oauth,'test-client');
+  const rejected=assert.rejects(result,/validade suficiente/);
+  google.config.callback({access_token:'test',scope:YOUTUBE_READ_SCOPE,expires_in:0});await rejected;
 });
