@@ -1,0 +1,8 @@
+import { forwardRef } from 'react';
+import type { LucideIcon } from 'lucide-react';
+import * as Glyphs from 'lucide-react';
+// One vector grid, stroke weight and accessible decorative treatment for all controls.
+function aurora(Icon: LucideIcon): LucideIcon {
+ return forwardRef((props, ref) => <Icon {...props} ref={ref} strokeWidth={1.8} className={`aurora-glyph ${props.className ?? ''}`} aria-hidden="true" focusable="false"/>);
+}
+export const Play=aurora(Glyphs.Play), Pause=aurora(Glyphs.Pause), Stop=aurora(Glyphs.Square), SkipForward=aurora(Glyphs.SkipForward), SkipBack=aurora(Glyphs.SkipBack), Shuffle=aurora(Glyphs.Shuffle), Repeat=aurora(Glyphs.Repeat), Repeat1=aurora(Glyphs.Repeat1), Heart=aurora(Glyphs.Heart), ListMusic=aurora(Glyphs.ListMusic), Home=aurora(Glyphs.House), Library=aurora(Glyphs.Library), Search=aurora(Glyphs.Search), Discover=aurora(Glyphs.Compass), Radio=aurora(Glyphs.Radio), Visualizer=aurora(Glyphs.AudioLines), Equalizer=aurora(Glyphs.SlidersVertical), Moon=aurora(Glyphs.Moon), Sun=aurora(Glyphs.Sun), Settings=aurora(Glyphs.Settings), Profile=aurora(Glyphs.UserRound), Download=aurora(Glyphs.Download), Upload=aurora(Glyphs.Upload), Folder=aurora(Glyphs.Folder), Monitor=aurora(Glyphs.Monitor), Volume2=aurora(Glyphs.Volume2), VolumeX=aurora(Glyphs.VolumeX), NowPlaying=aurora(Glyphs.AudioLines), ArrowLeft=aurora(Glyphs.ArrowLeft), ChevronDown=aurora(Glyphs.ChevronDown), Plus=aurora(Glyphs.Plus), X=aurora(Glyphs.X), MoreHorizontal=aurora(Glyphs.MoreHorizontal), Clock3=aurora(Glyphs.Clock3), LogIn=aurora(Glyphs.LogIn), Users=aurora(Glyphs.Users), CirclePlay=aurora(Glyphs.CirclePlay);

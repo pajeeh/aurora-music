@@ -1,0 +1,20 @@
+:root{--accent:#8fa8ff;--line:#24283d;--muted:#aab1c9}
+.app{background:#090d19}.main{background:#101425}.sidebar{background:#0a0e1b}.rightbar{background:#0c1120}
+.aurora-glyph{transition:color .18s ease,filter .18s ease;vertical-align:middle}
+button:hover:not(:disabled) .aurora-glyph{color:#6eeaff;filter:drop-shadow(0 0 4px #39cdea66)}
+button[aria-pressed=true]>.aurora-glyph,.sidebar nav .active>.aurora-glyph{color:#76eaff;filter:drop-shadow(0 0 5px #56c7f755)}
+button[aria-pressed=true]>.aurora-glyph[data-lucide=heart]{color:#ee9bfa}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #70e8ff;outline-offset:4px}
+.sidebar nav .active{background:linear-gradient(110deg,#163848,#242143)}
+.controls .play-button,.primary-button{background:linear-gradient(120deg,#75eaff,#a392ff 65%,#e59bf3);color:#101425}
+.controls .play-button:hover:not(:disabled) .aurora-glyph,.primary-button:hover:not(:disabled) .aurora-glyph{color:#101425;filter:none}
+.panel-tabs button[aria-pressed=true]{background:#99acff;color:#101425}
+.aurora-banner{position:relative;isolation:isolate;display:flex;align-items:center;gap:24px;min-height:180px;padding:30px;overflow:hidden;background:radial-gradient(ellipse at 80% 0,#8240a94d,transparent 65%),radial-gradient(ellipse at 20% 100%,#159abb38,transparent 65%),#101529;border-bottom:1px solid #65579866}
+.aurora-banner:after{content:'';position:absolute;z-index:-1;inset:35% -10% -75%;border:2px solid #72dfff55;border-radius:50%;transform:rotate(-14deg);box-shadow:0 -15px 50px #7564ff22}
+.aurora-banner img{width:100px;height:100px;filter:drop-shadow(0 0 16px #8270ff44)}
+.aurora-banner small{color:#89e9ff;letter-spacing:.18em;font-size:10px}.aurora-banner h2{font:800 clamp(24px,3vw,38px)/1.15 Manrope;margin:12px 0}.aurora-banner p{color:#c0bed9;margin:0;font-size:13px}
+.rightbar>h2{align-items:center;gap:10px}.panel-tabs button{display:flex;align-items:center;gap:6px}.panel-tabs svg{width:16px;height:16px}
+@media(max-width:650px){.aurora-banner{min-height:150px;padding:22px 16px;gap:14px}.aurora-banner img{width:64px;height:64px}.aurora-banner p{font-size:11px}.rightbar>h2{display:flex}}
+@media(prefers-reduced-motion:reduce){.aurora-glyph{transition:none}}
+.rightbar>h2{display:flex}.track-actions button[aria-pressed=true] .lucide-heart,.feature-heart[aria-pressed=true] .lucide-heart{color:#ee9bfa}@media(max-width:1100px){.compact-player .volume .mute-toggle{display:none}}
+.lyrics-panel{font-size:13px;line-height:1.6;min-width:0}.lyrics-help,.lyrics-panel small{color:var(--muted)}.lyrics-panel form{display:grid;gap:10px}.lyrics-panel label{display:grid;gap:5px}.lyrics-panel input:not([type=checkbox]){width:100%;min-width:0;background:#101529;border:1px solid #39405c;color:#fff;border-radius:8px;padding:9px}.lyrics-results{display:grid;gap:6px;max-height:300px;overflow:auto}.lyrics-results button{text-align:left;border:1px solid var(--line);border-radius:8px;padding:10px}.lyrics-results small{display:block}.lyrics-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.lyrics-follow{display:flex!important;align-items:center;margin:12px 0}.lyrics-text{max-height:360px;overflow:auto;padding:10px 12px;line-height:1.9;border:1px solid var(--line);border-radius:12px;margin:14px 0;color:#afb6d0;overflow-wrap:anywhere}.lyrics-text p{margin:10px 0}.lyrics-text .current-line{color:#88edff;font-weight:700}.lyrics-text.plain{white-space:pre-wrap}.lyrics-source{color:#9daeff;font-size:11px}.panel-tabs{flex-wrap:wrap}

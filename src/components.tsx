@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Clock3, Heart, ListMusic, Monitor, MoreHorizontal, Play, X, CirclePlay as Youtube } from 'lucide-react';
+import { Clock3, Heart, ListMusic, Monitor, MoreHorizontal, Play, X, CirclePlay as Youtube } from './icons';
 import type { Track } from './types';
 export function Cover({artwork}:{artwork?:string}){return artwork?<img className="cover" src={artwork} alt="" loading="lazy"/>:<ListMusic className="cover empty-cover"/>;}
 export function CollectionRow({index,title,origin,count,artwork,liked,onOpen,onPlay}:{index:number;title:string;origin:string;count:number|null;artwork?:string;liked?:boolean;onOpen:()=>void;onPlay:()=>void}){return <div className="collection-row"><span className="row-number">{index}</span><button className="collection-title" onClick={onOpen}>{liked?<Heart className="liked-cover" fill="currentColor"/>:<Cover artwork={artwork}/>}<b>{title}</b></button><span className="origin-label">{origin==='YouTube'?<Youtube/>:<Monitor/>}{origin}</span><span className="track-count">{count===null?'Consultar':`${count} faixas`}</span><button className="round-button" aria-label={`Abrir ou reproduzir ${title}`} onClick={onPlay}><Play fill="currentColor"/></button></div>;}

@@ -95,12 +95,22 @@ Para autorização Google que permaneça válida por dias sem cliques, falta imp
 
 ## Uso
 
-## Identidade punk e showcase
+## Identidade Aurora e showcase
 
-A tela inicial usa uma colagem original em preto, papel creme e vermelho, sem sacrificar a legibilidade do player. O transporte compacto oferece fila, dispositivos, volume, ordem aleatória e repetição na fila individual. Os painéis exibem apenas dispositivos efetivamente pareados; não simulam descoberta na rede.
+A tela inicial usa a marca Aurora em cyan, azul, violeta e magenta, com ícones vetoriais consistentes e estados de foco, hover e seleção. O transporte compacto oferece fila, dispositivos, volume e silenciar, ordem aleatória e repetição na fila individual. As teclas de mídia usam Media Session nos navegadores compatíveis. Os painéis exibem apenas dispositivos efetivamente pareados; não simulam descoberta na rede.
+
+O conjunto aprovado está em `public/icons/`, com [galeria de ícones](https://pajeeh.github.io/aurora-music/icones-aurora.html) e [pacote ZIP](https://pajeeh.github.io/aurora-music/aurora-icons.zip). Os controles usam `src/icons.tsx`; os ícones reservados para funções futuras estão disponíveis no pacote, sem adicionar controles sem função. A colagem punk original continua preservada em `public/aurora-pirate-banner.png` e no showcase.
 
 O showcase está em `public/showcase.html`, publicado como `/aurora-music/showcase.html`. Apresenta o projeto gratuito e suas limitações reais. Não anuncia importação completa do YouTube Music nem Connect público antes dessas funções estarem prontas.
 
 O objetivo é não cobrar pelo uso do Aurora. Essa intenção não altera a licença do código nem os termos e direitos dos conteúdos reproduzidos pelo YouTube.
 
 Código-fonte publicado como portfólio pessoal. Nenhuma licença de redistribuição ou uso comercial é concedida.
+
+## Desenvolvimento e login Google
+
+Use `http://localhost:5173/aurora-music/` na prévia local. O servidor mantém a porta 5173 e falha se ela estiver ocupada, para evitar uma origem OAuth diferente. O cliente Aurora Web autoriza `http://localhost:5173` e `https://pajeeh.github.io`; `127.0.0.1` e outras portas são origens diferentes. Um erro `origin_mismatch` exige conferir a origem JavaScript autorizada no Google Cloud. Prefira Chrome ou Edge para validar a autorização e reprodução reais.
+
+## Letras
+
+O painel **Tocando agora → Letras** consulta o LRCLIB ao clicar em Buscar letra. Título e artista podem ser ajustados, e o usuário escolhe a gravação correta. Letras sincronizadas destacam a linha pela posição do player; texto simples e faixas instrumentais também são tratados. A disponibilidade depende do catálogo e da conexão. O título e artista consultados são enviados ao LRCLIB, sem tokens da conta Google. Introduções e versões de vídeos podem diferir da gravação da letra.
