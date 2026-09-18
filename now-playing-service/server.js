@@ -9,7 +9,7 @@ const clientId = process.env.GOOGLE_CLIENT_ID;
 const ref = db.doc('aurora/public-now-playing');
 
 const cors = { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Headers': 'Authorization, Content-Type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
-const send = (res, status, body, type = 'application/json') => { res.writeHead(status, { ...cors, 'Content-Type': `${type}; charset=utf-8`, 'Cache-Control': 'no-store' }); res.end(body); };
+const send = (res, status, body, type = 'application/json') => { res.writeHead(status, { ...cors, 'Content-Type': `${type}; charset=utf-8`, 'Cache-Control': 'no-cache, no-store, must-revalidate', 'X-Content-Type-Options': 'nosniff' }); res.end(body); };
 
 async function authenticate(req) {
   const token = req.headers.authorization?.match(/^Bearer (.+)$/)?.[1];
@@ -49,7 +49,7 @@ http.createServer(async (req, res) => {
     }
     return send(res, 404, JSON.stringify({ error: 'not_found' }));
   } catch (error) {
-    console.error(error);
+    console.error('Now-playing request failed');
     return send(res, error?.message === 'too_large' ? 413 : 500, JSON.stringify({ error: 'server_error' }));
   }
 }).listen(Number(process.env.PORT || 8080));

@@ -45,7 +45,14 @@ function App(){
   const displayedQueue=group.state?.queue.map(item=>item.track) ?? queue;const displayedCurrent=group.state?.playback.track ?? current;
   const selectedCollection=collections.find(item=>item.id===selected);const liked=useMemo(()=>new Set(saved.map(t=>t.id)),[saved]);
   useEffect(()=>{try{localStorage.setItem('aurora-liked-tracks-v1',JSON.stringify(saved));localStorage.setItem('aurora-queue-v1',JSON.stringify(queue));localStorage.setItem('aurora-current-v1',JSON.stringify([current]));localStorage.setItem(COLLECTIONS_KEY,JSON.stringify(collections));localStorage.setItem('aurora-recent-v1',JSON.stringify(recent));}catch{setNotice('Não foi possível salvar neste dispositivo. Verifique as permissões e o espaço disponível.');}},[saved,queue,current,collections,recent]);
-  useEffect(()=>{try{localStorage.setItem('aurora-now-playing',JSON.stringify({track:current,playing:player.playing,updatedAt:new Date().toISOString()}));}catch{/* Playback is independent of storage. */}if(account.token&&nowPlayingReady()&&(!group.state||group.isPlayer))void publishNowPlaying(account.token,current,player.playing).catch(()=>undefined);},[current,player.playing,account.token,group.isPlayer]);
+  useEffect(()=>{
+    try{localStorage.setItem('aurora-now-playing',JSON.stringify({track:displayedCurrent,playing:player.playing,updatedAt:new Date().toISOString()}));}catch{/* Playback is independent of storage. */}
+    if(!account.token||!nowPlayingReady()||(group.state&&!group.isPlayer))return;
+    const token=account.token;const controller=new AbortController();let busy=false;
+    const publish=async()=>{if(busy)return;busy=true;try{await publishNowPlaying(token,displayedCurrent,player.playing,controller.signal);}catch{/* A publication failure must not interrupt playback. */}finally{busy=false;}};
+    void publish();const timer=player.playing?setInterval(()=>void publish(),60000):undefined;
+    return()=>{clearInterval(timer);controller.abort();};
+  },[displayedCurrent,player.playing,account.token,group.isPlayer,!!group.state]);
   const commandKey=group.state?`${group.state.playerId}:${group.state.playback.command}`:'local';
   const previousGroup=useRef(false);
   useEffect(()=>{if(!group.state){if(previousGroup.current)player.pause();previousGroup.current=false;return;}previousGroup.current=true;if(!group.isPlayer){player.pause();return;}const playback=group.state.playback;if(playback.track&&player.ready){setCurrent(playback.track);player.setPlayback(playback.track.id,playback.position,playback.playing);}},[commandKey,player.ready]);
