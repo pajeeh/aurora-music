@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Testar o Aurora
+    url: https://pajeeh.github.io/aurora-music/beta.html
+    about: Veja o roteiro do beta antes de enviar seu relato.
+  - name: Pergunta ou conversa
+    url: https://github.com/pajeeh/aurora-music/discussions
+    about: Use Discussions para dúvidas e ideias abertas.

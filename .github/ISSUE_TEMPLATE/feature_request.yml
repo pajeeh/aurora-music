@@ -1,0 +1,25 @@
+name: Sugerir uma ideia
+description: Proponha uma melhoria para o Aurora.
+title: "[Ideia]: "
+labels: [enhancement, beta]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Que problema esta ideia resolve?
+      placeholder: Quando estou ouvindo música, eu preciso…
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Como você imagina a solução?
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Qual seria o impacto?
+      options: [Pequena melhoria, Usaria com frequência, Impede meu uso do Aurora]
+    validations:
+      required: true

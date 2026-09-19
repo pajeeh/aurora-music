@@ -7,6 +7,8 @@
 
 <div align="center">
   <a href="https://pajeeh.github.io/aurora-music/"><strong>Abrir o Aurora</strong></a>
+  · <a href="https://pajeeh.github.io/aurora-music/showcase.html"><strong>Conhecer o projeto</strong></a>
+  · <a href="https://pajeeh.github.io/aurora-music/beta.html"><strong>Participar do beta</strong></a>
 </div>
 
 ![Aurora no desktop](docs/screenshots/aurora-desktop.png)
@@ -23,13 +25,12 @@
 - curtidas e fila persistidas no dispositivo;
 - layout responsivo para desktop e telas pequenas;
 - instalação como aplicativo pelo navegador compatível (PWA);
-- estado local de “tocando agora” preparado para integrações.
+- Aurora Connect público com fila compartilhada por convite;
+- card público “tocando agora” atualizado pelo player real.
 
 ## Aurora Now Playing
 
-O aplicativo já registra a faixa e o estado de reprodução em tempo real no dispositivo. O SVG acima é a prévia visual do card que poderá ser colocado no perfil do GitHub.
-
-Para torná-lo realmente ao vivo no GitHub ainda falta publicar um pequeno serviço: o GitHub não consegue ler o armazenamento de um navegador em `localhost`. Esse serviço receberá os eventos do Aurora e entregará um SVG público, sem expor o token do Google. Até essa etapa, o card deste README é demonstrativo e não deve ser confundido com telemetria ao vivo.
+O aplicativo publica a faixa e o estado de reprodução em um serviço Cloudflare protegido. O SVG público é usado no perfil do GitHub e incorpora a capa da faixa sem expor o token Google. Presença ao vivo expira quando o player deixa de enviar atualizações; o cache de imagens do GitHub pode levar alguns minutos para refletir a mudança.
 
 ## Rodando localmente
 
@@ -60,7 +61,7 @@ npm run build
 
 ## Verificação
 
-A versão publicada anterior foi homologada com uma conta de teste autorizada. A revisão local atual possui 27 testes de autenticação, biblioteca, coleções e reprodução, além de 5 testes do Connect. A homologação OAuth real desta revisão ainda requer a conta autorizada do usuário.
+A versão publicada é validada pelo GitHub Actions antes de cada implantação. A suíte cobre autenticação, biblioteca, coleções, reprodução, Connect e o card público. Login real continua restrito às contas autorizadas enquanto o projeto Google estiver em modo de testes.
 
 ## Revisão local: biblioteca e Aurora Connect
 
@@ -82,15 +83,19 @@ npm --prefix connect-service test
 
 O código do convite concede acesso à sessão: compartilhe apenas com pessoas convidadas. Tokens de pareamento ficam por aba, separados dos tokens Google. O serviço mantém sessões em memória por padrão; com `CONNECT_STATE_FILE` e volume persistente, recupera as sessões após reiniciar, com reprodução pausada. Expira sessões após 12 horas de inatividade. Limites: 20 dispositivos e 200 faixas por sessão. Veja [implantação do Connect](connect-service/README.md) e [card do perfil GitHub](now-playing-service/README.md).
 
-Esta é uma base local, não uma publicação do Connect: GitHub Pages sozinho não executa esse servidor. Para uso entre aparelhos reais, falta hospedar a API com HTTPS e encaminhamento na mesma origem, definir persistência e proteção de convites. Nenhuma porta de rede ou regra de firewall foi aberta. Não há descoberta automática de equipamentos, Chromecast, AirPlay ou integração com TVs/caixas de som.
+O Connect público usa o Worker do Aurora por HTTPS e permite sessões por convite entre navegadores. Não há descoberta automática de equipamentos, Chromecast, AirPlay ou integração direta com TVs e caixas de som. O código do convite concede acesso temporário à sessão e não deve ser publicado.
 
 Para autorização Google que permaneça válida por dias sem cliques, falta implementar OAuth por código e renovação no servidor. O fluxo atual usa tokens temporários do Google Identity Services e não armazena refresh tokens no navegador.
 
+## Beta público
+
+O roteiro de teste, limites conhecidos e canais de feedback estão em [BETA.md](BETA.md). Bugs usam um formulário que pede passos e ambiente; ideias têm um formulário separado. Vulnerabilidades e dados sensíveis seguem o canal privado descrito em [SECURITY.md](SECURITY.md).
+
+O estado de preparação para ampliar o beta está em [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).
+
 ## Próximas faixas
 
-- card público “tocando agora” com autenticação segura;
 - presença no Discord e extensão para VS Code;
-- fila colaborativa por convite;
 - empacotamento para Windows e Android.
 
 ## Uso

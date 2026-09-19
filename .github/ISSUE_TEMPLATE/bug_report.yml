@@ -1,0 +1,56 @@
+name: Relatar um problema
+description: Conte o que quebrou durante o beta do Aurora.
+title: "[Bug]: "
+labels: [bug, beta]
+body:
+  - type: markdown
+    attributes:
+      value: Obrigado por testar o Aurora. Não publique tokens, códigos de convite, e-mail ou outros dados pessoais.
+  - type: textarea
+    id: happened
+    attributes:
+      label: O que aconteceu?
+      description: Diga também o que você esperava que acontecesse.
+      placeholder: Ao clicar em… eu esperava… mas…
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Como reproduzir
+      placeholder: "1. Abra…\n2. Clique…\n3. Observe…"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options: [Reprodução, Busca, Login Google, Biblioteca e playlists, Letras, Aurora Connect, Instalação PWA, Visual ou acessibilidade, Outro]
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Aparelho e navegador
+      placeholder: Ex. Windows 11 · Chrome 140 ou Galaxy S23 · Firefox
+    validations:
+      required: true
+  - type: dropdown
+    id: account
+    attributes:
+      label: Conta Google conectada?
+      options: [Não, Sim, Não se aplica]
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidências sem dados pessoais
+      description: Arraste uma captura ou cole mensagens de erro, removendo qualquer dado privado.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacidade
+      options:
+        - label: Revisei o relato e removi tokens, códigos de convite e dados pessoais.
+          required: true
