@@ -19,7 +19,7 @@ export class AuroraState extends DurableObject {
     if(url.pathname==='/internal/card'){
       if(request.method==='GET'||request.method==='HEAD'){
         const value=await this.ctx.storage.get('now-playing');const timestamp=Date.parse(value?.updatedAt)||0;const tag=`"aurora-${timestamp}"`;const headers={'Content-Type':'image/svg+xml; charset=utf-8','Cache-Control':'public, max-age=0, must-revalidate','ETag':tag,'Last-Modified':new Date(timestamp).toUTCString(),'X-Content-Type-Options':'nosniff'};
-        if(request.headers.get('If-None-Match')===tag)return new Response(null,{status:304,headers});
+        if(request.headers.get('If-None-Match')?.replace(/^W\//,'')===tag)return new Response(null,{status:304,headers});
         return new Response(request.method==='HEAD'?null:renderSvg(value),{headers});
       }
       const value=normalizePayload(await request.json());if(!value)return json({error:'invalid_payload'},400);
