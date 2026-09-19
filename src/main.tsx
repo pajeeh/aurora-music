@@ -49,9 +49,12 @@ function App(){
     try{localStorage.setItem('aurora-now-playing',JSON.stringify({track:displayedCurrent,playing:player.playing,updatedAt:new Date().toISOString()}));}catch{/* Playback is independent of storage. */}
     if(!account.token||!nowPlayingReady()||(group.state&&!group.isPlayer))return;
     const token=account.token;const controller=new AbortController();let busy=false;
-    const publish=async()=>{if(busy)return;busy=true;try{await publishNowPlaying(token,displayedCurrent,player.playing,controller.signal);}catch{/* A publication failure must not interrupt playback. */}finally{busy=false;}};
-    void publish();const timer=player.playing?setInterval(()=>void publish(),60000):undefined;
-    return()=>{clearInterval(timer);controller.abort();};
+    const publish=async(keepalive=false)=>{if(busy)return;busy=true;try{await publishNowPlaying(token,displayedCurrent,player.playing,controller.signal,keepalive);}catch{/* A publication failure must not interrupt playback. */}finally{busy=false;}};
+    const refresh=()=>{if(document.visibilityState==='visible')void publish();};
+    const finish=()=>{void publish(true);};
+    void publish();const timer=player.playing?setInterval(()=>void publish(),15000):undefined;
+    window.addEventListener('focus',refresh);window.addEventListener('online',refresh);document.addEventListener('visibilitychange',refresh);window.addEventListener('pagehide',finish);
+    return()=>{clearInterval(timer);window.removeEventListener('focus',refresh);window.removeEventListener('online',refresh);document.removeEventListener('visibilitychange',refresh);window.removeEventListener('pagehide',finish);controller.abort();};
   },[displayedCurrent,player.playing,account.token,group.isPlayer,!!group.state]);
   const commandKey=group.state?`${group.state.playerId}:${group.state.playback.command}`:'local';
   const previousGroup=useRef(false);

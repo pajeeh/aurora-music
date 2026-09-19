@@ -5,6 +5,8 @@ import { normalizePayload, renderSvg } from '../../now-playing-service/core.js';
 const json=(value,status=200,headers={})=>new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers}});
 const cors=origin=>({'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Headers':'Authorization, Content-Type','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Vary':'Origin'});
 const code=()=>crypto.getRandomValues(new Uint8Array(9)).toBase64({alphabet:'base64url',omitPadding:true});
+const authCache=new Map();
+const tokenKey=async token=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token))),byte=>byte.toString(16).padStart(2,'0')).join('');
 
 export class AuroraState extends DurableObject {
   async rooms(){
@@ -15,7 +17,11 @@ export class AuroraState extends DurableObject {
   async fetch(request){
     const url=new URL(request.url);
     if(url.pathname==='/internal/card'){
-      if(request.method==='GET')return new Response(renderSvg(await this.ctx.storage.get('now-playing')),{headers:{'Content-Type':'image/svg+xml; charset=utf-8','Cache-Control':'no-cache, no-store, must-revalidate','X-Content-Type-Options':'nosniff'}});
+      if(request.method==='GET'||request.method==='HEAD'){
+        const value=await this.ctx.storage.get('now-playing');const timestamp=Date.parse(value?.updatedAt)||0;const tag=`"aurora-${timestamp}"`;const headers={'Content-Type':'image/svg+xml; charset=utf-8','Cache-Control':'public, max-age=0, must-revalidate','ETag':tag,'Last-Modified':new Date(timestamp).toUTCString(),'X-Content-Type-Options':'nosniff'};
+        if(request.headers.get('If-None-Match')===tag)return new Response(null,{status:304,headers});
+        return new Response(request.method==='HEAD'?null:renderSvg(value),{headers});
+      }
       const value=normalizePayload(await request.json());if(!value)return json({error:'invalid_payload'},400);
       await this.ctx.storage.put('now-playing',value);return json(value);
     }
@@ -35,8 +41,9 @@ export class AuroraState extends DurableObject {
 
 async function owner(request,env){
   const token=request.headers.get('Authorization')?.match(/^Bearer (.+)$/)?.[1];if(!token||!env.ALLOWED_EMAIL||!env.GOOGLE_CLIENT_ID)return false;
+  const key=await tokenKey(token);const cached=authCache.get(key);if(cached&&cached.expires>Date.now())return cached.owner;
   const response=await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(token)}`);if(!response.ok)return false;
-  const identity=await response.json();return identity.email_verified==='true'&&identity.email===env.ALLOWED_EMAIL&&identity.aud===env.GOOGLE_CLIENT_ID;
+  const identity=await response.json();const allowed=identity.email_verified==='true'&&identity.email===env.ALLOWED_EMAIL&&identity.aud===env.GOOGLE_CLIENT_ID;const ttl=Math.max(5000,Math.min(300000,Number(identity.expires_in||0)*1000));authCache.set(key,{owner:allowed,expires:Date.now()+ttl});if(authCache.size>64)authCache.delete(authCache.keys().next().value);return allowed;
 }
 
 export default {async fetch(request,env){
