@@ -26,12 +26,12 @@ export class Rooms {
     renameSync(this.stateFile+'.tmp',this.stateFile);
   }
   sweep() { for (const [code,room] of this.rooms) if (this.now() - room.touched > 12 * 3600000) this.rooms.delete(code); }
-  create(name, queue = []) {
+  create(name, queue = [], requestedCode) {
     this.sweep();
     if (this.rooms.size >= 100) fail(503, 'Limite de sessões atingido.');
     if (!Array.isArray(queue) || queue.length > 200) fail(400, 'Fila muito grande.');
     const tracks = queue.map(cleanTrack);
-    const code = randomBytes(9).toString('base64url');
+    const code = requestedCode ?? randomBytes(9).toString('base64url');
     const member = this.member(name, true);
     const room = { code, hostId:member.id, playerId:member.id, members:new Map([[member.token,member]]), queue:tracks.map(track => ({track,addedBy:member.name})), playback:{track:tracks[0] ?? null,playing:false,position:0,command:0}, reported:{playing:false,position:0}, revision:0, touched:this.now() };
     this.rooms.set(code,room);
