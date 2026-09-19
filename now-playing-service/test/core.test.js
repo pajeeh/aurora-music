@@ -20,7 +20,7 @@ test('escapes untrusted metadata before rendering SVG', () => {
   assert.doesNotMatch(svg, /<script>/);
   assert.match(svg, /&lt;script&gt;/);
   assert.match(svg, /A &amp; B/);
-  assert.match(svg, /AO VIVO/);
+  assert.match(svg, /TRANSMITINDO AGORA/);
   assert.match(svg, /animateTransform/);
   assert.match(svg, /repeatCount="indefinite"/);
 });
@@ -28,21 +28,21 @@ test('escapes untrusted metadata before rendering SVG', () => {
 test('closed clients expire while heartbeat keeps playback live', () => {
   const now = Date.parse('2026-09-18T12:00:00Z');
   const data = {track:{title:'Faixa',artist:'Artista'},playing:true,updatedAt:new Date(now-60000).toISOString()};
-  assert.match(renderSvg(data,now), /AO VIVO/);
-  assert.match(renderSvg(data,now+120000), /ÚLTIMA FAIXA/);
-  assert.match(renderSvg({...data,playing:false},now), /ÚLTIMA FAIXA/);
-  assert.doesNotMatch(renderSvg({...data,updatedAt:'invalid'},now), /AO VIVO/);
+  assert.match(renderSvg(data,now), /TRANSMITINDO AGORA/);
+  assert.match(renderSvg(data,now+120000), /ÚLTIMO RUÍDO/);
+  assert.match(renderSvg({...data,playing:false},now), /ÚLTIMO RUÍDO/);
+  assert.doesNotMatch(renderSvg({...data,updatedAt:'invalid'},now), /TRANSMITINDO AGORA/);
 });
 
 test('keeps the paused card still and accessible', () => {
   const svg = renderSvg({track:{title:'Faixa',artist:'Artista'},playing:false,updatedAt:new Date().toISOString()});
-  assert.match(svg, /ÚLTIMA FAIXA/);
+  assert.match(svg, /ÚLTIMO RUÍDO/);
   assert.match(svg, /<title>Aurora/);
   assert.doesNotMatch(svg, /animateTransform/);
 });
 
 test('truncates text before escaping so long titles remain valid XML', () => {
-  const svg=renderSvg({track:{title:'a'.repeat(36)+'& fim',artist:'Artista'}});
-  assert.match(svg,/&amp;…/);
+  const svg=renderSvg({track:{title:'a'.repeat(31)+'& fim',artist:'Artista'}});
+  assert.match(svg,/&amp; …/);
   assert.doesNotMatch(svg,/&am</);
 });
