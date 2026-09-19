@@ -65,3 +65,48 @@ Build passou; 29 testes frontend, 5 Connect e 3 now-playing passaram. Vídeo de 
 Resultado visual das capturas: nenhum bloqueador identificado. Publicação autorizada pelo usuário. Sem alegação de equivalência pixel a pixel, homologação completa ou prontidão pública do Connect.
 
 final result: passed (visual capturado; integrações limitadas conforme acima)
+
+---
+
+# Aurora punk card — design QA
+
+- Source visual truth: `C:/Users/pajem/AppData/Local/Temp/codex-clipboard-018b2332-6c5b-4266-aba1-c259c56c22da.png`
+- Implementation: `https://aurora-edge.aurora-edge.workers.dev/now-playing.svg?v=3`
+- Profile context: `https://github.com/pajeeh`
+- Source pixels: 917 × 444; implementation SVG: 900 × 280 CSS pixels; inspected in Chrome at a 1848 × 900 viewport.
+- State: authenticated GitHub profile, Aurora transmitting a live track.
+
+## Full-view comparison evidence
+
+The source showed a clean neon player with strong information hierarchy but little punk character. The implementation keeps the same left-to-right reading order and live data while introducing an asymmetric cut frame, acid palette, xerox grain, halftone field, ripped labels, stencil typography and broadcast marks. It remains readable at the GitHub README width.
+
+## Focused comparison evidence
+
+The card was inspected directly and inside the GitHub profile. Title, artist, live state, footer and equalizer remain legible. Motion was verified for the disc, orbit, live pulse, scan, ticker and equalizer. Reduced-motion fallback remains present.
+
+## Fidelity surfaces
+
+- Typography: heavier display face creates the requested punk hierarchy; system fallbacks keep GitHub rendering stable.
+- Spacing: the music identity remains dominant; decorative marks do not collide with track metadata.
+- Colors: cyan, magenta and purple preserve Aurora identity; acid yellow and paper white add the punk skin.
+- Image quality: the card is vector and self-contained, so it stays sharp and avoids external asset failures through GitHub Camo.
+- Copy: live and paused messages were rewritten to match the broadcast skin without obscuring their meaning.
+
+## Comparison history
+
+1. First render: the top paper label clipped its final word and the live pulse touched the status text (P2).
+2. Fix: widened both labels, reduced headline tracking and moved the live pulse into dedicated space.
+3. Post-fix evidence: direct Worker render and GitHub profile render both show complete labels and clear separation.
+
+## Findings
+
+No actionable P0, P1 or P2 issues remain. The animated footer intentionally passes behind the frame edge as a ticker.
+
+## Validation
+
+- Direct SVG response: 200, accessible title present.
+- Primary interaction: the card link remains clickable in the GitHub profile.
+- Console-visible errors: none observed during the profile check.
+- Responsive behavior: SVG viewBox scales cleanly to the README column.
+
+final result: passed
