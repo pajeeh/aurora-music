@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "aurora-edge",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-18",
+  "durable_objects": { "bindings": [{ "name": "AURORA", "class_name": "AuroraState" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["AuroraState"] }],
+  "vars": { "AURORA_ORIGIN": "https://pajeeh.github.io" },
+  "observability": { "enabled": true }
+}

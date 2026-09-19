@@ -4,9 +4,10 @@ const ENDPOINT = import.meta.env.VITE_NOW_PLAYING_ENDPOINT as string | undefined
 
 export function nowPlayingReady() { return Boolean(ENDPOINT); }
 
-export async function publishNowPlaying(token: string, track: Track, playing: boolean) {
+export async function publishNowPlaying(token: string, track: Track, playing: boolean, signal?: AbortSignal) {
   if (!ENDPOINT) return;
-  const response = await fetch(`${ENDPOINT}/api/now-playing`, {
+  const response = await fetch(`${ENDPOINT.replace(/\/$/, '')}/api/now-playing`, {
+    signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(10000)]) : AbortSignal.timeout(10000),
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ track: { id: track.id, title: track.title, artist: track.artist, artwork: track.artwork }, playing })

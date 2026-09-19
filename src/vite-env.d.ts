@@ -4,4 +4,5 @@ interface ImportMetaEnv {
   readonly VITE_YOUTUBE_API_KEY?: string;
   readonly VITE_GOOGLE_CLIENT_ID?: string;
   readonly VITE_NOW_PLAYING_ENDPOINT?: string;
+  readonly VITE_CONNECT_ENDPOINT?: string;
 }

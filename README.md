@@ -80,7 +80,7 @@ Abra `http://127.0.0.1:4173/aurora-music/`. O Vite encaminha `/api/connect` ao s
 npm --prefix connect-service test
 ```
 
-O código do convite concede acesso à sessão: compartilhe apenas com pessoas convidadas. Tokens de pareamento ficam por aba, separados dos tokens Google. O serviço mantém sessões em memória, perde-as ao reiniciar e expira sessões após 12 horas de inatividade. Limites: 20 dispositivos e 200 faixas por sessão.
+O código do convite concede acesso à sessão: compartilhe apenas com pessoas convidadas. Tokens de pareamento ficam por aba, separados dos tokens Google. O serviço mantém sessões em memória por padrão; com `CONNECT_STATE_FILE` e volume persistente, recupera as sessões após reiniciar, com reprodução pausada. Expira sessões após 12 horas de inatividade. Limites: 20 dispositivos e 200 faixas por sessão. Veja [implantação do Connect](connect-service/README.md) e [card do perfil GitHub](now-playing-service/README.md).
 
 Esta é uma base local, não uma publicação do Connect: GitHub Pages sozinho não executa esse servidor. Para uso entre aparelhos reais, falta hospedar a API com HTTPS e encaminhamento na mesma origem, definir persistência e proteção de convites. Nenhuma porta de rede ou regra de firewall foi aberta. Não há descoberta automática de equipamentos, Chromecast, AirPlay ou integração com TVs/caixas de som.
 
@@ -99,9 +99,9 @@ Para autorização Google que permaneça válida por dias sem cliques, falta imp
 
 A tela inicial usa a marca Aurora em cyan, azul, violeta e magenta, com ícones vetoriais consistentes e estados de foco, hover e seleção. O transporte compacto oferece fila, dispositivos, volume e silenciar, ordem aleatória e repetição na fila individual. As teclas de mídia usam Media Session nos navegadores compatíveis. Os painéis exibem apenas dispositivos efetivamente pareados; não simulam descoberta na rede.
 
-O conjunto aprovado está em `public/icons/`, com [galeria de ícones](https://pajeeh.github.io/aurora-music/icones-aurora.html) e [pacote ZIP](https://pajeeh.github.io/aurora-music/aurora-icons.zip). Os controles usam `src/icons.tsx`; os ícones reservados para funções futuras estão disponíveis no pacote, sem adicionar controles sem função. A colagem punk original continua preservada em `public/aurora-pirate-banner.png` e no showcase.
+O conjunto aprovado está em `public/icons/`, com [galeria de ícones](https://pajeeh.github.io/aurora-music/icones-aurora.html) e [pacote ZIP](https://pajeeh.github.io/aurora-music/aurora-icons.zip). Os controles usam `src/icons.tsx`; os ícones reservados para funções futuras estão disponíveis no pacote, sem adicionar controles sem função. A colagem punk original continua preservada em `public/aurora-pirate-banner.png`.
 
-O showcase está em `public/showcase.html`, publicado como `/aurora-music/showcase.html`. Apresenta o projeto gratuito e suas limitações reais. Não anuncia importação completa do YouTube Music nem Connect público antes dessas funções estarem prontas.
+O showcase está em `public/showcase.html` e `public/showcase.css`, publicado como `/aurora-music/showcase.html`. Apresenta a identidade neon, playlists, reprodução, letras e o conjunto de ícones. Não anuncia importação completa do YouTube Music nem Connect público antes dessas funções estarem prontas. A organização das branches e os critérios de integração estão em [CONTRIBUTING.md](CONTRIBUTING.md).
 
 O objetivo é não cobrar pelo uso do Aurora. Essa intenção não altera a licença do código nem os termos e direitos dos conteúdos reproduzidos pelo YouTube.
 

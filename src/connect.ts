@@ -3,8 +3,10 @@ import type { Track } from './types';
 export type GroupState = { code:string; hostId:string; playerId:string; revision:number; queue:{track:Track;addedBy:string}[]; playback:{track:Track|null;playing:boolean;position:number;command:number}; reported:{playing:boolean;position:number;duration?:number}; members:{id:string;name:string;host:boolean;canPlay:boolean;online:boolean}[] };
 type Pair = {code:string;token:string;memberId:string};
 const KEY='aurora-connect-pair-v1';
+const ENDPOINT=(import.meta.env.VITE_CONNECT_ENDPOINT ?? '').replace(/\/$/,'');
+export const connectConfigured=Boolean(ENDPOINT);
 async function call(path:string,body?:unknown,token?:string) {
-  const response=await fetch(`/api/connect/${path}`,{method:body===undefined?'GET':'POST',headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...(token?{Authorization:`Bearer ${token}`}:{})},...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(8000)});
+  const response=await fetch(`${ENDPOINT}/api/connect/${path}`,{method:body===undefined?'GET':'POST',headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...(token?{Authorization:`Bearer ${token}`}:{})},...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(8000)});
   let value;try {value=await response.json();} catch {throw new Error('Aurora Connect indisponível. Inicie o serviço de sessões.');}
   if (!response.ok) throw Object.assign(new Error(value.error || 'Falha na sessão.'),{status:response.status});
   return value;

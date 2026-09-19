@@ -1,13 +1,15 @@
 import http from 'node:http';
 import { pathToFileURL } from 'node:url';
 import { Rooms } from './rooms.js';
-export function createServer(rooms = new Rooms(), allowedOrigin = process.env.AURORA_ORIGIN) {
+export function createServer(rooms = new Rooms(Date.now,process.env.CONNECT_STATE_FILE), allowedOrigin = process.env.AURORA_ORIGIN) {
   const rates=new Map();
   const server=http.createServer(async(req,res)=>{
-    const send=(status,value)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(value));};
+    const send=(status,value)=>{if(status<300&&req.method!=='OPTIONS')rooms.persist();res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(value));};
     try {
       const origin=req.headers.origin;
       if (origin && !(allowedOrigin ? origin===allowedOrigin : /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin))) return send(403,{error:'Origem não autorizada.'});
+      if(origin){res.setHeader('Access-Control-Allow-Origin',origin);res.setHeader('Vary','Origin');res.setHeader('Access-Control-Allow-Headers','Authorization, Content-Type');res.setHeader('Access-Control-Allow-Methods','GET, POST, OPTIONS');}
+      if(req.method==='OPTIONS'){res.writeHead(204);res.end();return;}
       const ip=req.socket.remoteAddress;
       const now=Date.now(); const rate=rates.get(ip);
       if (!rate || now-rate.start>60000) rates.set(ip,{start:now,count:1});

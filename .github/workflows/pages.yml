@@ -30,6 +30,7 @@ jobs:
         env:
           VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
           VITE_NOW_PLAYING_ENDPOINT: ${{ vars.VITE_NOW_PLAYING_ENDPOINT }}
+          VITE_CONNECT_ENDPOINT: ${{ vars.VITE_CONNECT_ENDPOINT }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

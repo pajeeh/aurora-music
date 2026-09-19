@@ -16,9 +16,24 @@ test('normalizes bounded public metadata', () => {
 });
 
 test('escapes untrusted metadata before rendering SVG', () => {
-  const svg = renderSvg({ track: { title: '<script>alert(1)</script>', artist: 'A & B' }, playing: true });
+  const svg = renderSvg({ track: { title: '<script>alert(1)</script>', artist: 'A & B' }, playing: true, updatedAt: new Date().toISOString() });
   assert.doesNotMatch(svg, /<script>/);
   assert.match(svg, /&lt;script&gt;/);
   assert.match(svg, /A &amp; B/);
   assert.match(svg, /TOCANDO AGORA/);
+});
+
+test('closed clients expire while heartbeat keeps playback live', () => {
+  const now = Date.parse('2026-09-18T12:00:00Z');
+  const data = {track:{title:'Faixa',artist:'Artista'},playing:true,updatedAt:new Date(now-60000).toISOString()};
+  assert.match(renderSvg(data,now), /TOCANDO AGORA/);
+  assert.match(renderSvg(data,now+120000), /ÚLTIMA FAIXA/);
+  assert.match(renderSvg({...data,playing:false},now), /ÚLTIMA FAIXA/);
+  assert.doesNotMatch(renderSvg({...data,updatedAt:'invalid'},now), /TOCANDO AGORA/);
+});
+
+test('truncates text before escaping so long titles remain valid XML', () => {
+  const svg=renderSvg({track:{title:'a'.repeat(36)+'& fim',artist:'Artista'}});
+  assert.match(svg,/&amp;…/);
+  assert.doesNotMatch(svg,/&am</);
 });
