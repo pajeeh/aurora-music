@@ -110,3 +110,39 @@ No actionable P0, P1 or P2 issues remain. The animated footer intentionally pass
 - Responsive behavior: SVG viewBox scales cleanly to the README column.
 
 final result: passed
+
+---
+
+# Aurora app-aligned card — design QA
+
+- Visual source of truth: the published Aurora player at `https://pajeeh.github.io/aurora-music/`.
+- Rejected prior direction: `C:/Users/pajem/AppData/Local/Temp/codex-clipboard-0d84bb83-5bb2-467a-8ccd-d00eae1d9877.png`.
+- Implementation: `https://aurora-edge.aurora-edge.workers.dev/now-playing.svg?v=4`.
+- Profile context: `https://github.com/pajeeh`.
+- State reviewed: authenticated profile, live track “Crise Geral” by Ratos de Porão - Topic, with YouTube artwork hydrated by the Worker.
+
+## Comparison and correction
+
+The punk broadcast skin was visually polished but diverged from the product it represented. The published Aurora app uses dark navy surfaces, cyan-to-violet light, generous rounding, clean type, album art, restrained aurora curves and conventional player controls. The replacement card now uses those same signals and reads as a compact Aurora player rather than a separate campaign graphic.
+
+The full SVG and the GitHub profile context were inspected after deployment. The album art, live state, title, artist, play control, progress line and equalizer remain legible at the README width. The profile copy was corrected to describe the motions actually present.
+
+## Fidelity surfaces
+
+- Typography: clean system typography and app-like hierarchy replace the stencil and torn-label treatment.
+- Spacing: a 182px cover anchors the left; metadata and transport controls follow the same reading order as the app.
+- Color: deep navy, cyan, violet and soft magenta match the published player surfaces.
+- Imagery: the Worker safely fetches and embeds the current YouTube thumbnail so GitHub Camo receives a self-contained SVG; the Aurora mark remains the fallback.
+- Motion: aurora curves, progress, live pulse and equalizer animate; reduced-motion styling remains present.
+- Live behavior: artwork is reused for the same track, YouTube IDs are validated, fetched images are size-bounded, and a failed artwork request does not block presence updates.
+
+## Validation
+
+- 29 frontend tests passed.
+- 7 now-playing tests passed, including artwork data validation and XML escaping.
+- Production build passed.
+- Worker deployed successfully as version `1c63648d-6af5-4ff2-a12f-8aa90ccceda9`.
+- Direct SVG and GitHub profile both expose the expected accessible card label and link.
+- No actionable P0, P1 or P2 visual issue remained after the comparison.
+
+final result: passed
