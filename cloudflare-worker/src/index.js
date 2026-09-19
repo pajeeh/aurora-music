@@ -7,6 +7,12 @@ const cors=origin=>({'Access-Control-Allow-Origin':origin,'Access-Control-Allow-
 const code=()=>crypto.getRandomValues(new Uint8Array(9)).toBase64({alphabet:'base64url',omitPadding:true});
 const authCache=new Map();
 const tokenKey=async token=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token))),byte=>byte.toString(16).padStart(2,'0')).join('');
+async function hydrateArtwork(value,current){
+  if(current?.track?.id===value.track.id&&current.track.artworkData){value.track.artworkData=current.track.artworkData;return value;}
+  if(!/^[\w-]{6,20}$/.test(value.track.id))return value;
+  try{const response=await fetch(`https://i.ytimg.com/vi/${encodeURIComponent(value.track.id)}/mqdefault.jpg`,{cf:{cacheEverything:true,cacheTtl:86400}});if(!response.ok)return value;const bytes=new Uint8Array(await response.arrayBuffer());if(bytes.byteLength>90000)return value;value.track.artworkData=`data:image/jpeg;base64,${bytes.toBase64()}`;}catch{/* Artwork is an enhancement; presence must still publish. */}
+  return value;
+}
 
 export class AuroraState extends DurableObject {
   async rooms(){
@@ -22,7 +28,7 @@ export class AuroraState extends DurableObject {
         if(request.headers.get('If-None-Match')?.replace(/^W\//,'')===tag)return new Response(null,{status:304,headers});
         return new Response(request.method==='HEAD'?null:renderSvg(value),{headers});
       }
-      const value=normalizePayload(await request.json());if(!value)return json({error:'invalid_payload'},400);
+      let value=normalizePayload(await request.json());if(!value)return json({error:'invalid_payload'},400);value=await hydrateArtwork(value,await this.ctx.storage.get('now-playing'));
       await this.ctx.storage.put('now-playing',value);return json(value);
     }
     if(url.pathname==='/internal/now-playing')return json(await this.ctx.storage.get('now-playing')??{});
