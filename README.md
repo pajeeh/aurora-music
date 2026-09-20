@@ -93,6 +93,8 @@ O roteiro de teste, limites conhecidos e canais de feedback estão em [BETA.md](
 
 O estado de preparação para ampliar o beta está em [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).
 
+Para apresentações presenciais, use o [roteiro de demonstração do evento](EVENT_DEMO.md), com pitch de 90 segundos, preparação e plano B.
+
 ## Próximas faixas
 
 - presença no Discord e extensão para VS Code;
