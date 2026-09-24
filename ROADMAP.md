@@ -23,8 +23,8 @@ Recurso de destaque para comparar duas identidades musicais e criar uma experiê
 - [x] calcular uma porcentagem de compatibilidade explicável;
 - [x] mostrar faixas e artistas em comum;
 - [x] destacar descobertas que apenas uma pessoa conhece;
-- gerar uma playlist conjunta que ambos podem editar;
-- produzir um card compartilhável sem expor dados privados.
+- [x] gerar uma playlist conjunta que ambos podem editar;
+- [x] produzir um card compartilhável sem expor dados privados.
 
 ### Critérios de qualidade
 
