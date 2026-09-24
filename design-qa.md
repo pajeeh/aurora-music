@@ -146,3 +146,56 @@ The full SVG and the GitHub profile context were inspected after deployment. The
 - No actionable P0, P1 or P2 visual issue remained after the comparison.
 
 final result: passed
+
+---
+
+# Aurora Flow design QA
+
+- Source visual truth: `C:\Users\pajem\.codex\generated_images\01a0b2b6-0558-7833-9589-3510bbce7c7c\exec-7d22485b-4432-4b35-933e-2d11b10c61c1.png`
+- Implementation: `http://localhost:4173/aurora-music/`, captured in the Codex in-app browser during this QA run
+- Target viewport: 4:3
+- Implementation viewport: 982 × 736 CSS px, device scale 1
+- Source pixels: 1488 × 1058; compared by matching the app-content composition to a 4:3 viewport rather than stretching the source
+- State: Home, signed out, Despacito selected, player paused; queue drawer checked open and closed
+
+**Full-view comparison evidence**
+
+The implementation preserves the selected direction's composition: compact navigation, artwork-led hero, oversized current-track title, restrained Aurora color, two discovery layers, a persistent bottom player, and a contextual queue drawer. The 4:3 implementation intentionally wraps the source's wider composition vertically instead of squeezing the artwork or title.
+
+**Focused region comparison evidence**
+
+- Hero: square art remains the dominant visual anchor, title and artist retain clear hierarchy, and playback/like/Connect actions remain grouped.
+- Player: current track, transport, progress, queue and device actions remain visible at 4:3.
+- Drawer: queue opens above the content with a scrim, exposes YouTube playback and tabs, and closes without changing the current track.
+- Responsive navigation: the 982 px state uses the compact horizontal navigation; the phone breakpoint maps it to fixed bottom navigation.
+
+**Findings**
+
+- No actionable P0, P1 or P2 differences remain.
+- P3: the compact-width header is taller than the wide source composition. This is accepted because it preserves search and account access at the 4:3 breakpoint without shrinking touch targets.
+
+**Required fidelity surfaces**
+
+- Fonts and typography: Manrope/DM Sans hierarchy, strong display weight, readable metadata and controlled title wrapping match the direction.
+- Spacing and layout rhythm: hero, section gaps and persistent player use a consistent rhythm; no core control is clipped at 4:3.
+- Colors and visual tokens: midnight navy surfaces and cyan/violet/magenta accents remain consistent with Aurora and meet readable contrast in the inspected state.
+- Image quality and assets: the real track artwork and existing Aurora vector mark are used without placeholders or reconstructed assets.
+- Copy and content: Portuguese labels describe actual Aurora behavior; no invented feature or metric was added.
+
+**Comparison history**
+
+1. Initial pass found the queue button visually selected while the drawer was closed and hidden drawer controls still exposed to keyboard navigation.
+2. The player now reports both panel toggles unselected while closed, and the closed drawer is inert and absent from the accessibility tree.
+3. Post-fix browser evidence confirmed the player, discovery CTA, Connect action, drawer open/close flow and accessible control names.
+
+**Implementation checklist**
+
+- [x] 4:3 artwork-led Home
+- [x] Contextual queue, devices and lyrics drawer
+- [x] Persistent transport controls
+- [x] Android-oriented bottom navigation breakpoint
+- [x] Keyboard focus isolation for the closed drawer
+- [x] Build and automated tests
+
+final result: passed
+

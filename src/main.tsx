@@ -113,16 +113,13 @@ function App() {
   const [joinCode, setJoinCode] = useState('');
 
   const [panel, setPanel] = useState<'queue' | 'devices' | 'lyrics'>('queue');
+  const [panelOpen, setPanelOpen] = useState(false);
   const [fallbackBusy, setFallbackBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function showPanel(value: 'queue' | 'devices' | 'lyrics') {
     setPanel(value);
-    if (window.matchMedia('(max-width:1100px)').matches) {
-      document
-        .querySelector('.panel-tabs')
-        ?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    }
+    setPanelOpen(true);
   }
 
   const [shuffle, setShuffle] = useState(false);
@@ -855,6 +852,7 @@ function App() {
               browse={() => navigate('library')}
               search={() => navigate('search')}
               install={installPrompt ? () => void installApp() : undefined}
+              connect={() => setModal('connect')}
             />
           ) : view === 'library' ? (
             <>
@@ -1105,10 +1103,12 @@ function App() {
         </section>
       </main>
 
-      <aside className="rightbar">
+      {panelOpen && <button className="panel-scrim" aria-label="Fechar painel do player" onClick={() => setPanelOpen(false)} />}
+      <aside className={`rightbar ${panelOpen ? 'is-open' : ''}`} aria-hidden={!panelOpen} inert={!panelOpen}>
         <h2>
           <NowPlaying />
           Tocando agora
+          <button className="panel-close" aria-label="Fechar painel" onClick={() => setPanelOpen(false)}><X /></button>
         </h2>
         <div className="youtube-frame">
           <div className="player-mount" ref={player.mount} />
@@ -1388,7 +1388,7 @@ function App() {
         }}
         volume={player.volume}
         setVolume={player.setVolume}
-        panel={panel}
+        panel={panelOpen ? panel : null}
         setPanel={showPanel}
         shuffle={shuffle}
         setShuffle={changeShuffle}

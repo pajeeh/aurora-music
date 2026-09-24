@@ -56,7 +56,7 @@ export function PlayerBar({
   seek: (value: number) => void;
   volume: number;
   setVolume: (value: number) => void;
-  panel: 'queue' | 'devices' | 'lyrics';
+  panel: 'queue' | 'devices' | 'lyrics' | null;
   setPanel: (value: 'queue' | 'devices' | 'lyrics') => void;
   shuffle: boolean;
   setShuffle: (value: boolean) => void;
