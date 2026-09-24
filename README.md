@@ -42,7 +42,7 @@ copy .env.example .env.local
 npm run dev
 ```
 
-Preencha `VITE_GOOGLE_CLIENT_ID` no `.env.local`. `VITE_YOUTUBE_API_KEY` é opcional: com a conta conectada, a busca usa o token OAuth. O `.env.local` não é versionado.
+Preencha `VITE_GOOGLE_CLIENT_ID` no `.env.local`. O Aurora usa o botão oficial **Continuar com Google** para criar a sessão da conta e solicita acesso de leitura ao YouTube separadamente, apenas quando a pessoa escolhe **Conectar YouTube**. `VITE_YOUTUBE_API_KEY` é opcional: com o YouTube conectado, a busca usa o token OAuth. O `.env.local` não é versionado.
 
 ```bash
 npm test
@@ -54,7 +54,7 @@ npm run build
 - O áudio e o vídeo são fornecidos pelo player oficial do YouTube.
 - O Aurora não baixa nem intercepta mídia.
 - O acesso OAuth está em modo de testes e limitado às contas autorizadas no Google Cloud.
-- Tokens respeitam a validade informada pelo Google e são descartados quando vencem. O perfil continua lembrado até sair explicitamente; renovar o acesso exige um clique. O armazenamento local não é um cofre: nenhum token deve ser compartilhado ou registrado em logs.
+- A identidade do Aurora usa um ID Token de curta duração guardado na sessão da aba. A autorização do YouTube usa outro token, também temporário, e pode ser renovada ou removida sem apagar o perfil social. O armazenamento do navegador não é um cofre: nenhum token deve ser compartilhado ou registrado em logs.
 - O projeto é uma experiência pessoal, sem afiliação com Google, YouTube ou Spotify.
 
 [Política de Privacidade](https://pajeeh.github.io/aurora-music/privacy.html) · [Termos de Uso](https://pajeeh.github.io/aurora-music/terms.html)

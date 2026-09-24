@@ -57,8 +57,10 @@ import './aurora.css';
 import { LyricsPanel } from './LyricsPanel';
 import { useMediaSession } from './useMediaSession';
 import { importAndReadLikes, likeSyncReady, readCloudLikes, writeCloudLike } from './library-sync';
+import { SocialStage } from './SocialStage';
+import { GoogleSignInButton } from './GoogleSignInButton';
 
-type View = 'home' | 'library' | 'search' | 'liked' | 'collection' | 'youtube';
+type View = 'home' | 'social' | 'library' | 'search' | 'liked' | 'collection' | 'youtube';
 type Filter = 'Tudo' | 'Playlists' | 'Curtidas' | 'Recentes';
 type InstallPromptEvent=Event&{prompt:()=>Promise<void>;userChoice:Promise<{outcome:'accepted'|'dismissed'}>};
 
@@ -177,12 +179,12 @@ function App() {
   const savedRef=useRef(saved);savedRef.current=saved;
 
   useEffect(()=>{
-    if(!account.token||!likeSyncReady())return;
-    const token=account.token;let active=true;let busy=false;
+    if(!account.identityToken||!likeSyncReady())return;
+    const token=account.identityToken;let active=true;let busy=false;
     const apply=(value:{likedTracks:Track[]})=>{if(active)setSaved(value.likedTracks);};
     const refresh=async(first=false)=>{if(busy||document.visibilityState==='hidden')return;busy=true;try{apply(first?await importAndReadLikes(token,savedRef.current):await readCloudLikes(token));}catch(error){if(first&&active)setNotice((error as Error).message);}finally{busy=false;}};
     void refresh(true);const timer=setInterval(()=>void refresh(),15000);const focus=()=>void refresh();window.addEventListener('focus',focus);return()=>{active=false;clearInterval(timer);window.removeEventListener('focus',focus);};
-  },[account.token]);
+  },[account.identityToken]);
 
   useEffect(() => {
     try {
@@ -211,10 +213,10 @@ function App() {
     } catch {
       /* Playback is independent of storage. */
     }
-    if (!account.token || !nowPlayingReady() || (group.state && !group.isPlayer))
+    if (!account.identityToken || !nowPlayingReady() || (group.state && !group.isPlayer))
       return;
 
-    const token = account.token;
+    const token = account.identityToken;
     const controller = new AbortController();
     let busy = false;
 
@@ -259,7 +261,7 @@ function App() {
       window.removeEventListener('pagehide', finish);
       controller.abort();
     };
-  }, [displayedCurrent, player.playing, account.token, group.isPlayer, !!group.state]);
+  }, [displayedCurrent, player.playing, account.identityToken, group.isPlayer, !!group.state]);
 
   const commandKey = group.state
     ? `${group.state.playerId}:${group.state.playback.command}`
@@ -367,7 +369,7 @@ function App() {
   function toggleLike(track: Track) {
     const shouldLike=!savedRef.current.some(t=>t.id===track.id);
     setSaved(items=>shouldLike?[track,...items.filter(t=>t.id!==track.id)]:items.filter(t=>t.id!==track.id));
-    if(account.token&&likeSyncReady())void writeCloudLike(account.token,track,shouldLike).then(value=>setSaved(value.likedTracks)).catch(error=>setNotice((error as Error).message));
+    if(account.identityToken&&likeSyncReady())void writeCloudLike(account.identityToken,track,shouldLike).then(value=>setSaved(value.likedTracks)).catch(error=>setNotice((error as Error).message));
   }
 
   function openSave(track: Track) {
@@ -592,6 +594,8 @@ function App() {
       ? library.title
       : view === 'search'
       ? 'Buscar'
+      : view === 'social'
+      ? 'Comunidade'
       : 'Continue ouvindo';
 
   let shownTracks =
@@ -653,6 +657,7 @@ function App() {
             [
               { id: 'home', label: 'Início', icon: Home },
               { id: 'search', label: 'Buscar', icon: Search },
+              { id: 'social', label: 'Comunidade', icon: Users },
               { id: 'library', label: 'Biblioteca', icon: Library },
             ] as const
           ).map(item => (
@@ -754,13 +759,13 @@ function App() {
             {account.profile && !account.token && (
               <button
                 className="reconnect-button"
-                onClick={() => void account.connect()}
+                onClick={() => void account.connectYouTube()}
                 disabled={account.busy}
               >
-                <RefreshCw /> Reconectar YouTube
+                <RefreshCw /> Conectar YouTube
               </button>
             )}
-            <button
+            {!account.profile ? <GoogleSignInButton onCredential={account.signIn} notify={setNotice}/> : <button
               className="account-button"
               aria-label={
                 account.profile
@@ -768,8 +773,7 @@ function App() {
                   : 'Conectar YouTube'
               }
               onClick={() => {
-                if (!account.profile) void account.connect();
-                else setAccountMenu(value => !value);
+                setAccountMenu(value => !value);
               }}
               disabled={account.busy}
             >
@@ -783,12 +787,10 @@ function App() {
               <span>
                 {account.busy
                   ? 'Conectando…'
-                  : account.profile
-                  ? `${account.profile.name}${account.token ? '' : ' · renovar'}`
-                  : 'Conectar YouTube'}
+                  : `${account.profile.name}${account.token ? ' · YouTube' : ''}`}
               </span>
               <ChevronDown />
-            </button>
+            </button>}
             {account.busy && (
               <button onClick={account.cancel}>Cancelar</button>
             )}
@@ -797,10 +799,10 @@ function App() {
                 <button
                   onClick={() => {
                     setAccountMenu(false);
-                    void account.connect();
+                    void account.connectYouTube();
                   }}
                 >
-                  Renovar acesso
+                  {account.token?'Renovar YouTube':'Conectar YouTube'}
                 </button>
                 <button
                   onClick={() => {
@@ -854,6 +856,8 @@ function App() {
               install={installPrompt ? () => void installApp() : undefined}
               connect={() => setModal('connect')}
             />
+          ) : view === 'social' ? (
+            <SocialStage token={account.identityToken} name={account.profile?.name??'Aurora'} avatar={account.profile?.avatar} current={displayedCurrent} play={(item,source)=>void play(item,source)} notify={setNotice}/>
           ) : view === 'library' ? (
             <>
               <div className="library-toolbar">

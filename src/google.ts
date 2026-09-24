@@ -7,6 +7,11 @@ declare global {
     google?: {
       accounts: {
         oauth2: GoogleOAuth;
+        id: {
+          initialize(config:{client_id:string;callback:(value:{credential:string})=>void;ux_mode?:'popup'}):void;
+          renderButton(element:HTMLElement,options:Record<string,string>):void;
+          disableAutoSelect():void;
+        };
       };
     };
   }
@@ -32,7 +37,7 @@ export function prepareGoogleConnection(): Promise<void> {
     script.async = true;
     script.onload = () => {
       clearTimeout(timeout);
-      if (window.google?.accounts?.oauth2) resolve();
+      if (window.google?.accounts?.oauth2 && window.google?.accounts?.id) resolve();
       else fail();
     };
     script.onerror = fail;
