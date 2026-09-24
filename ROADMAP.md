@@ -17,12 +17,12 @@ Este roadmap orienta o crescimento do Aurora depois da beta social. A ordem prio
 
 Recurso de destaque para comparar duas identidades musicais e criar uma experiência compartilhável.
 
-### Primeira versão
+### Primeira versão — em desenvolvimento
 
-- comparar curtidas, histórico recente e músicas adicionadas a playlists;
-- calcular uma porcentagem de compatibilidade explicável;
-- mostrar faixas e artistas em comum;
-- destacar descobertas que apenas uma pessoa conhece;
+- [x] comparar uma seleção voluntária de curtidas e histórico recente;
+- [x] calcular uma porcentagem de compatibilidade explicável;
+- [x] mostrar faixas e artistas em comum;
+- [x] destacar descobertas que apenas uma pessoa conhece;
 - gerar uma playlist conjunta que ambos podem editar;
 - produzir um card compartilhável sem expor dados privados.
 

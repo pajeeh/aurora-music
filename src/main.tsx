@@ -858,7 +858,7 @@ function App() {
               connect={() => setModal('connect')}
             />
           ) : view === 'social' ? (
-            <SocialStage token={account.identityToken} name={account.profile?.name??'Aurora'} avatar={account.profile?.avatar} current={displayedCurrent} play={(item,source)=>void play(item,source)} notify={setNotice}/>
+            <SocialStage token={account.identityToken} name={account.profile?.name??'Aurora'} avatar={account.profile?.avatar} current={displayedCurrent} taste={Array.from(new Map([...saved,...recent].map(track=>[track.id,track])).values()).slice(0,50)} play={(item,source)=>void play(item,source)} notify={setNotice}/>
           ) : view === 'library' ? (
             <>
               <div className="library-toolbar">
