@@ -55,3 +55,5 @@ export const LogIn = aurora(Glyphs.LogIn);
 export const Users = aurora(Glyphs.Users);
 export const CirclePlay = aurora(Glyphs.CirclePlay);
 export const RefreshCw = aurora(Glyphs.RefreshCw);
+export const Lock = aurora(Glyphs.Lock);
+export const Trash = aurora(Glyphs.Trash2);

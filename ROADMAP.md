@@ -5,8 +5,8 @@ Este roadmap orienta o crescimento do Aurora depois da beta social. A ordem prio
 ## Próximo ciclo
 
 - onboarding por gostos musicais, com artistas e gêneros favoritos;
-- perfil público ou privado;
-- exclusão da conta e dos dados sociais dentro do app;
+- [x] perfil público ou privado, com aprovação de seguidores;
+- [x] exclusão da conta e dos dados sociais dentro do app;
 - denúncia, bloqueio e limites contra spam;
 - capas, descrições e níveis de permissão em playlists colaborativas;
 - feed mostrando amigos ouvindo em tempo real;
