@@ -19,3 +19,16 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #70e8
 .fatal-error{min-height:100vh;display:grid;place-content:center;justify-items:start;gap:14px;padding:clamp(28px,8vw,90px);background:radial-gradient(circle at 75% 20%,#754aa733,transparent 42%),#090d19;color:#f4f3fb}.fatal-error img{width:84px;height:84px}.fatal-error h1{font:800 clamp(34px,6vw,64px)/1.05 Manrope,system-ui;margin:4px 0;max-width:700px}.fatal-error p{max-width:620px;color:#abb3cc}.fatal-error>div{display:flex;gap:12px;flex-wrap:wrap}.fatal-error .outline-button{display:inline-flex;align-items:center;text-decoration:none}
 .rightbar>h2{display:flex}.track-actions button[aria-pressed=true] .lucide-heart,.feature-heart[aria-pressed=true] .lucide-heart{color:#ee9bfa}@media(max-width:1100px){.compact-player .volume .mute-toggle{display:none}}
 .lyrics-panel{font-size:13px;line-height:1.6;min-width:0}.lyrics-help,.lyrics-panel small{color:var(--muted)}.lyrics-panel form{display:grid;gap:10px}.lyrics-panel label{display:grid;gap:5px}.lyrics-panel input:not([type=checkbox]){width:100%;min-width:0;background:#101529;border:1px solid #39405c;color:#fff;border-radius:8px;padding:9px}.lyrics-results{display:grid;gap:6px;max-height:300px;overflow:auto}.lyrics-results button{text-align:left;border:1px solid var(--line);border-radius:8px;padding:10px}.lyrics-results small{display:block}.lyrics-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.lyrics-follow{display:flex!important;align-items:center;margin:12px 0}.lyrics-text{max-height:360px;overflow:auto;padding:10px 12px;line-height:1.9;border:1px solid var(--line);border-radius:12px;margin:14px 0;color:#afb6d0;overflow-wrap:anywhere}.lyrics-text p{margin:10px 0}.lyrics-text .current-line{color:#88edff;font-weight:700}.lyrics-text.plain{white-space:pre-wrap}.lyrics-source{color:#9daeff;font-size:11px}.panel-tabs{flex-wrap:wrap}
+
+/* Aurora enhancement: backup buttons, queue reorder & player fallback */
+.library-actions-group{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.library-backup-buttons{display:flex;gap:8px;align-items:center}
+.queue-actions{display:flex;align-items:center;gap:2px}
+.queue-actions button{padding:3px;border-radius:4px}
+.queue-actions button:hover:not(:disabled){background:#292233}
+.player-error-actions{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.player-error-actions button{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;background:#3d2419;border:1px solid #6b3e2b;color:#ffd2b8}
+.player-error-actions button:hover:not(:disabled){background:#543223}
+.hidden-file-input{display:none}
+.reconnect-button{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid #ffcf5a66;border-radius:999px;background:#ffcf5a14;color:#ffe29a;font-size:11px;font-weight:800;white-space:nowrap}.reconnect-button svg{width:15px;height:15px}.reconnect-button:hover:not(:disabled){background:#ffcf5a22;color:#fff0c5}
+@media(max-width:760px){.reconnect-button{position:fixed;left:16px;right:16px;bottom:126px;z-index:39;justify-content:center;box-shadow:0 12px 36px #0009}.account-button>span:nth-child(2),.account-button>svg{display:none}}

@@ -1,7 +1,228 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Clock3, Heart, ListMusic, Monitor, MoreHorizontal, Play, X, CirclePlay as Youtube } from './icons';
+import React, { memo, useEffect, useRef, useState } from 'react';
+import {
+  Clock3,
+  Heart,
+  ListMusic,
+  Monitor,
+  MoreHorizontal,
+  Play,
+  X,
+  CirclePlay as Youtube,
+} from './icons';
 import type { Track } from './types';
-export function Cover({artwork}:{artwork?:string}){return artwork?<img className="cover" src={artwork} alt="" loading="lazy"/>:<ListMusic className="cover empty-cover"/>;}
-export function CollectionRow({index,title,origin,count,artwork,liked,onOpen,onPlay}:{index:number;title:string;origin:string;count:number|null;artwork?:string;liked?:boolean;onOpen:()=>void;onPlay:()=>void}){return <div className="collection-row"><span className="row-number">{index}</span><button className="collection-title" onClick={onOpen}>{liked?<Heart className="liked-cover" fill="currentColor"/>:<Cover artwork={artwork}/>}<b>{title}</b></button><span className="origin-label">{origin==='YouTube'?<Youtube/>:<Monitor/>}{origin}</span><span className="track-count">{count===null?'Consultar':`${count} faixas`}</span><button className="round-button" aria-label={`Abrir ou reproduzir ${title}`} onClick={onPlay}><Play fill="currentColor"/></button></div>;}
-export function TrackList({tracks,liked,play,like,enqueue,save,remove}:{tracks:Track[];liked:Set<string>;play:(track:Track,source?:Track[])=>void;like:(track:Track)=>void;enqueue:(track:Track)=>void;save:(track:Track)=>void;remove?:(track:Track)=>void}){const [menu,setMenu]=useState<string|null>(null);return <div className="track-table">{tracks.length>0&&<div className="track-head"><span>#</span><span>TÍTULO</span><span><Clock3/></span><span/></div>}{tracks.map((track,index)=><div className="track-row" key={`${track.id}-${index}`}><span className="row-number">{index+1}</span><button className="table-track" onClick={()=>play(track,tracks)}><Cover artwork={track.artwork}/><span><b>{track.title}</b><small>{track.artist}</small></span></button><span className="track-duration">{track.duration}</span><div className="track-actions"><button aria-label={`Curtir ${track.title}`} aria-pressed={liked.has(track.id)} onClick={()=>like(track)}><Heart fill={liked.has(track.id)?'currentColor':'none'}/></button><button aria-label={`Opções de ${track.title}`} aria-expanded={menu===`${track.id}-${index}`} onClick={()=>setMenu(menu===`${track.id}-${index}`?null:`${track.id}-${index}`)}><MoreHorizontal/></button>{menu===`${track.id}-${index}`&&<div className="track-menu"><button onClick={()=>{enqueue(track);setMenu(null);}}>Adicionar à fila</button><button onClick={()=>{save(track);setMenu(null);}}>Salvar em playlist</button>{remove&&<button onClick={()=>{remove(track);setMenu(null);}}>Remover desta playlist</button>}</div>}</div></div>)}</div>;}
-export function Modal({title,close,children}:{title:string;close:()=>void;children:React.ReactNode}){const ref=useRef<HTMLDivElement>(null);useEffect(()=>{const previous=document.activeElement as HTMLElement;ref.current?.querySelector<HTMLElement>('input,button')?.focus();return()=>previous?.focus();},[]);return <div className="modal-backdrop" onClick={event=>{if(event.target===event.currentTarget)close();}}><div className="modal" ref={ref} role="dialog" aria-modal="true" aria-label={title} onKeyDown={event=>{if(event.key==='Escape')close();if(event.key==='Tab'){const controls=Array.from(ref.current!.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),a[href]'));const first=controls[0],last=controls[controls.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}}}><div className="modal-heading"><h2>{title}</h2><button aria-label="Fechar janela" onClick={close}><X/></button></div>{children}</div></div>;}
+
+export const Cover = memo(function Cover({ artwork }: { artwork?: string }) {
+  return artwork ? (
+    <img className="cover" src={artwork} alt="" loading="lazy" />
+  ) : (
+    <ListMusic className="cover empty-cover" />
+  );
+});
+
+export const CollectionRow = memo(function CollectionRow({
+  index,
+  title,
+  origin,
+  count,
+  artwork,
+  liked,
+  onOpen,
+  onPlay,
+}: {
+  index: number;
+  title: string;
+  origin: string;
+  count: number | null;
+  artwork?: string;
+  liked?: boolean;
+  onOpen: () => void;
+  onPlay: () => void;
+}) {
+  return (
+    <div className="collection-row">
+      <span className="row-number">{index}</span>
+      <button className="collection-title" onClick={onOpen}>
+        {liked ? (
+          <Heart className="liked-cover" fill="currentColor" />
+        ) : (
+          <Cover artwork={artwork} />
+        )}
+        <b>{title}</b>
+      </button>
+      <span className="origin-label">
+        {origin === 'YouTube' ? <Youtube /> : <Monitor />}
+        {origin}
+      </span>
+      <span className="track-count">
+        {count === null ? 'Consultar' : `${count} faixas`}
+      </span>
+      <button
+        className="round-button"
+        aria-label={`Abrir ou reproduzir ${title}`}
+        onClick={onPlay}
+      >
+        <Play fill="currentColor" />
+      </button>
+    </div>
+  );
+});
+
+export const TrackList = memo(function TrackList({
+  tracks,
+  liked,
+  play,
+  like,
+  enqueue,
+  save,
+  remove,
+}: {
+  tracks: Track[];
+  liked: Set<string>;
+  play: (track: Track, source?: Track[]) => void;
+  like: (track: Track) => void;
+  enqueue: (track: Track) => void;
+  save: (track: Track) => void;
+  remove?: (track: Track) => void;
+}) {
+  const [menu, setMenu] = useState<string | null>(null);
+
+  return (
+    <div className="track-table">
+      {tracks.length > 0 && (
+        <div className="track-head">
+          <span>#</span>
+          <span>TÍTULO</span>
+          <span>
+            <Clock3 />
+          </span>
+          <span />
+        </div>
+      )}
+      {tracks.map((track, index) => {
+        const itemKey = `${track.id}-${index}`;
+        const isMenuOpen = menu === itemKey;
+        return (
+          <div className="track-row" key={itemKey}>
+            <span className="row-number">{index + 1}</span>
+            <button className="table-track" onClick={() => play(track, tracks)}>
+              <Cover artwork={track.artwork} />
+              <span>
+                <b>{track.title}</b>
+                <small>{track.artist}</small>
+              </span>
+            </button>
+            <span className="track-duration">{track.duration}</span>
+            <div className="track-actions">
+              <button
+                aria-label={`Curtir ${track.title}`}
+                aria-pressed={liked.has(track.id)}
+                onClick={() => like(track)}
+              >
+                <Heart fill={liked.has(track.id) ? 'currentColor' : 'none'} />
+              </button>
+              <button
+                aria-label={`Opções de ${track.title}`}
+                aria-expanded={isMenuOpen}
+                onClick={() => setMenu(isMenuOpen ? null : itemKey)}
+              >
+                <MoreHorizontal />
+              </button>
+              {isMenuOpen && (
+                <div className="track-menu">
+                  <button
+                    onClick={() => {
+                      enqueue(track);
+                      setMenu(null);
+                    }}
+                  >
+                    Adicionar à fila
+                  </button>
+                  <button
+                    onClick={() => {
+                      save(track);
+                      setMenu(null);
+                    }}
+                  >
+                    Salvar em playlist
+                  </button>
+                  {remove && (
+                    <button
+                      onClick={() => {
+                        remove(track);
+                        setMenu(null);
+                      }}
+                    >
+                      Remover desta playlist
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+
+export function Modal({
+  title,
+  close,
+  children,
+}: {
+  title: string;
+  close: () => void;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement;
+    ref.current?.querySelector<HTMLElement>('input,button')?.focus();
+    return () => previous?.focus();
+  }, []);
+
+  return (
+    <div
+      className="modal-backdrop"
+      onClick={event => {
+        if (event.target === event.currentTarget) close();
+      }}
+    >
+      <div
+        className="modal"
+        ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onKeyDown={event => {
+          if (event.key === 'Escape') close();
+          if (event.key === 'Tab') {
+            const controls = Array.from(
+              ref.current!.querySelectorAll<HTMLElement>(
+                'button:not(:disabled),input:not(:disabled),a[href]'
+              )
+            );
+            const first = controls[0];
+            const last = controls[controls.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+              event.preventDefault();
+              last?.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+              event.preventDefault();
+              first?.focus();
+            }
+          }
+        }}
+      >
+        <div className="modal-heading">
+          <h2>{title}</h2>
+          <button aria-label="Fechar janela" onClick={close}>
+            <X />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
