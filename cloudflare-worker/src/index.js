@@ -2,7 +2,7 @@ import { DurableObject } from 'cloudflare:workers';
 import { Rooms } from '../../connect-service/rooms.js';
 import { normalizePayload, renderSvg } from '../../now-playing-service/core.js';
 import { applyLibraryAction, publicLibrary } from './library-state.js';
-import { applySocialAction, socialPublic } from './social-state.js';
+import { applySocialAction, publicSocialProfile, socialPublic } from './social-state.js';
 
 const json=(value,status=200,headers={})=>new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers}});
 const cors=origin=>({'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Headers':'Authorization, Content-Type','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Vary':'Origin'});
@@ -42,8 +42,9 @@ export class AuroraState extends DurableObject {
       catch(error){return json({error:error.status?error.message:'Falha ao sincronizar biblioteca.'},error.status??500);}
     }
     if(url.pathname==='/internal/social'){
-      const viewer=request.headers.get('X-Aurora-Viewer');if(!viewer)return json({error:'unauthorized'},401);
       const current=await this.ctx.storage.get('social');
+      const publicHandle=request.headers.get('X-Aurora-Public-Handle');if(publicHandle){const value=publicSocialProfile(current,publicHandle);return value?json(value):json({error:'Perfil não encontrado.'},404);}
+      const viewer=request.headers.get('X-Aurora-Viewer');if(!viewer)return json({error:'unauthorized'},401);
       if(request.method==='GET')return json(socialPublic(current,viewer));
       if(request.method!=='POST')return json({error:'Método não permitido.'},405);
       try{const next=applySocialAction(current,viewer,await request.json());await this.ctx.storage.put('social',next);return json(socialPublic(next,viewer));}
@@ -94,6 +95,10 @@ export default {async fetch(request,env){
     if(Number(request.headers.get('Content-Length')??0)>131072)return json({error:'Solicitação muito grande.'},413,headers);
     const identity=await googleIdentity(request,env);if(!identity)return json({error:'unauthorized'},401,headers);
     const social=env.AURORA.getByName('social:global');const forwarded=new Request(new URL('/internal/social',url),request);forwarded.headers.set('X-Aurora-Viewer',identity.sub);const response=await social.fetch(forwarded);const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
+  }
+  if(url.pathname==='/api/social/public'){
+    if(request.method!=='GET')return json({error:'Método não permitido.'},405,headers);const handle=url.searchParams.get('handle')??'';if(!/^[a-z0-9_]{3,24}$/.test(handle))return json({error:'Perfil inválido.'},400,headers);
+    const social=env.AURORA.getByName('social:global');const forwarded=new Request(new URL('/internal/social',url),request);forwarded.headers.set('X-Aurora-Public-Handle',handle);const response=await social.fetch(forwarded);const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
   }
   const match=url.pathname.match(/^\/api\/connect\/rooms(?:\/([\w-]{12})(?:\/(join|actions))?)?$/);
   if(!match)return json({error:'Não encontrado.'},404,headers);

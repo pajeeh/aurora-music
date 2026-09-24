@@ -69,7 +69,7 @@ function App() {
   const account = useAccount(setNotice);
   const library = useLibrary(account.token, account.expire, setNotice);
 
-  const [view, setView] = useState<View>(()=>new URLSearchParams(location.search).get('view')==='search'?'search':'home');
+  const [view, setView] = useState<View>(()=>{const value=new URLSearchParams(location.search).get('view');return value==='search'||value==='social'||value==='library'?value:'home';});
   const [filter, setFilter] = useState<Filter>('Tudo');
   const [query, setQuery] = useState('');
   const [installPrompt,setInstallPrompt]=useState<InstallPromptEvent|null>(null);
@@ -718,6 +718,7 @@ function App() {
           <Monitor />
           <span>{group.state ? 'Sessão conectada' : 'Aurora Connect'}</span>
         </button>
+        <a className="beta-feedback" href="https://github.com/pajeeh/aurora-music/issues/new/choose" target="_blank" rel="noreferrer">Enviar feedback da beta ↗</a>
         <small className="sidebar-foot">
           Sua música. Suas regras.
           <br />

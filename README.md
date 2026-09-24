@@ -17,7 +17,8 @@
 
 ## O que já funciona
 
-- login com Google OAuth em modo de testes;
+- login público com Google, separado da autorização opcional do YouTube;
+- perfis públicos, seguidores, feed musical e playlists colaborativas por link;
 - playlists reais da conta conectada, em modo somente leitura;
 - reprodução pelo YouTube IFrame Player oficial;
 - play, pausa, faixa anterior/próxima, volume, posição e avanço automático da fila;
@@ -53,7 +54,7 @@ npm run build
 
 - O áudio e o vídeo são fornecidos pelo player oficial do YouTube.
 - O Aurora não baixa nem intercepta mídia.
-- O acesso OAuth está em modo de testes e limitado às contas autorizadas no Google Cloud.
+- O login básico está público. A autorização opcional do YouTube ainda está sujeita ao limite do Google para escopos sensíveis não verificados.
 - A identidade do Aurora usa um ID Token de curta duração guardado na sessão da aba. A autorização do YouTube usa outro token, também temporário, e pode ser renovada ou removida sem apagar o perfil social. O armazenamento do navegador não é um cofre: nenhum token deve ser compartilhado ou registrado em logs.
 - O projeto é uma experiência pessoal, sem afiliação com Google, YouTube ou Spotify.
 
@@ -61,7 +62,7 @@ npm run build
 
 ## Verificação
 
-A versão publicada é validada pelo GitHub Actions antes de cada implantação. A suíte cobre autenticação, biblioteca, coleções, reprodução, Connect e o card público. Login real continua restrito às contas autorizadas enquanto o projeto Google estiver em modo de testes.
+A versão publicada é validada pelo GitHub Actions antes de cada implantação. A suíte cobre autenticação, biblioteca, comunidade, coleções, reprodução, Connect e o card público.
 
 ## Revisão local: biblioteca e Aurora Connect
 
@@ -101,7 +102,7 @@ Para apresentações presenciais, use o [roteiro de demonstração do evento](EV
 
 ## Próximas faixas
 
-- presença no Discord e extensão para VS Code;
+- companion para presença no Discord e extensão para VS Code;
 - empacotamento para Windows e Android.
 
 ## Uso
