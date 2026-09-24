@@ -105,6 +105,8 @@ Para apresentações presenciais, use o [roteiro de demonstração do evento](EV
 - companion para presença no Discord e extensão para VS Code;
 - empacotamento para Windows e Android.
 
+O plano completo, incluindo **Aurora Match**, descoberta musical, comunidade, segurança e aplicativos, está no [roadmap do Aurora](ROADMAP.md).
+
 ## Uso
 
 ## Identidade Aurora e showcase
