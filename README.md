@@ -83,6 +83,8 @@ npm --prefix connect-service test
 
 O código do convite concede acesso à sessão: compartilhe apenas com pessoas convidadas. Tokens de pareamento ficam por aba, separados dos tokens Google. O serviço mantém sessões em memória por padrão; com `CONNECT_STATE_FILE` e volume persistente, recupera as sessões após reiniciar, com reprodução pausada. Expira sessões após 12 horas de inatividade. Limites: 20 dispositivos e 200 faixas por sessão. Veja [implantação do Connect](connect-service/README.md) e [card do perfil GitHub](now-playing-service/README.md).
 
+Quando a conta Google está conectada e `VITE_NOW_PLAYING_ENDPOINT` está configurado, as curtidas locais são mescladas uma vez por navegador e sincronizadas pelo serviço do Aurora. Sem conexão, as curtidas continuam disponíveis no dispositivo e voltam a sincronizar na próxima autorização.
+
 O Connect público usa o Worker do Aurora por HTTPS e permite sessões por convite entre navegadores. Não há descoberta automática de equipamentos, Chromecast, AirPlay ou integração direta com TVs e caixas de som. O código do convite concede acesso temporário à sessão e não deve ser publicado.
 
 Para autorização Google que permaneça válida por dias sem cliques, falta implementar OAuth por código e renovação no servidor. O fluxo atual usa tokens temporários do Google Identity Services e não armazena refresh tokens no navegador.

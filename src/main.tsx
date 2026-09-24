@@ -56,6 +56,7 @@ import './pirate.css';
 import './aurora.css';
 import { LyricsPanel } from './LyricsPanel';
 import { useMediaSession } from './useMediaSession';
+import { importAndReadLikes, likeSyncReady, readCloudLikes, writeCloudLike } from './library-sync';
 
 type View = 'home' | 'library' | 'search' | 'liked' | 'collection' | 'youtube';
 type Filter = 'Tudo' | 'Playlists' | 'Curtidas' | 'Recentes';
@@ -172,6 +173,15 @@ function App() {
   const displayedCurrent = group.state?.playback.track ?? current;
   const selectedCollection = collections.find(item => item.id === selected);
   const liked = useMemo(() => new Set(saved.map(t => t.id)), [saved]);
+  const savedRef=useRef(saved);savedRef.current=saved;
+
+  useEffect(()=>{
+    if(!account.token||!likeSyncReady())return;
+    const token=account.token;let active=true;let busy=false;
+    const apply=(value:{likedTracks:Track[]})=>{if(active)setSaved(value.likedTracks);};
+    const refresh=async(first=false)=>{if(busy||document.visibilityState==='hidden')return;busy=true;try{apply(first?await importAndReadLikes(token,savedRef.current):await readCloudLikes(token));}catch(error){if(first&&active)setNotice((error as Error).message);}finally{busy=false;}};
+    void refresh(true);const timer=setInterval(()=>void refresh(),15000);const focus=()=>void refresh();window.addEventListener('focus',focus);return()=>{active=false;clearInterval(timer);window.removeEventListener('focus',focus);};
+  },[account.token]);
 
   useEffect(() => {
     try {
@@ -354,11 +364,9 @@ function App() {
   }
 
   function toggleLike(track: Track) {
-    setSaved(items =>
-      items.some(t => t.id === track.id)
-        ? items.filter(t => t.id !== track.id)
-        : [track, ...items]
-    );
+    const shouldLike=!savedRef.current.some(t=>t.id===track.id);
+    setSaved(items=>shouldLike?[track,...items.filter(t=>t.id!==track.id)]:items.filter(t=>t.id!==track.id));
+    if(account.token&&likeSyncReady())void writeCloudLike(account.token,track,shouldLike).then(value=>setSaved(value.likedTracks)).catch(error=>setNotice((error as Error).message));
   }
 
   function openSave(track: Track) {

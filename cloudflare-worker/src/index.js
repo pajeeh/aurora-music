@@ -1,6 +1,7 @@
 import { DurableObject } from 'cloudflare:workers';
 import { Rooms } from '../../connect-service/rooms.js';
 import { normalizePayload, renderSvg } from '../../now-playing-service/core.js';
+import { applyLibraryAction, publicLibrary } from './library-state.js';
 
 const json=(value,status=200,headers={})=>new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers}});
 const cors=origin=>({'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Headers':'Authorization, Content-Type','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Vary':'Origin'});
@@ -32,6 +33,13 @@ export class AuroraState extends DurableObject {
       await this.ctx.storage.put('now-playing',value);return json(value);
     }
     if(url.pathname==='/internal/now-playing')return json(await this.ctx.storage.get('now-playing')??{});
+    if(url.pathname==='/internal/library'){
+      const current=await this.ctx.storage.get('library');
+      if(request.method==='GET')return json(publicLibrary(current));
+      if(request.method!=='POST')return json({error:'Método não permitido.'},405);
+      try{const next=applyLibraryAction(current,await request.json());await this.ctx.storage.put('library',next);return json(publicLibrary(next));}
+      catch(error){return json({error:error.status?error.message:'Falha ao sincronizar biblioteca.'},error.status??500);}
+    }
     const rooms=await this.rooms();let body={};if(request.method==='POST')body=await request.json();
     const parts=url.pathname.split('/').filter(Boolean);const roomCode=parts[1];const action=parts[2];
     try{
@@ -45,12 +53,13 @@ export class AuroraState extends DurableObject {
   }
 }
 
-async function owner(request,env){
-  const token=request.headers.get('Authorization')?.match(/^Bearer (.+)$/)?.[1];if(!token||!env.ALLOWED_EMAIL||!env.GOOGLE_CLIENT_ID)return false;
+async function googleIdentity(request,env){
+  const token=request.headers.get('Authorization')?.match(/^Bearer (.+)$/)?.[1];if(!token||!env.GOOGLE_CLIENT_ID)return null;
   const key=await tokenKey(token);const cached=authCache.get(key);if(cached&&cached.expires>Date.now())return cached.owner;
-  const response=await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(token)}`);if(!response.ok)return false;
-  const identity=await response.json();const allowed=identity.email_verified==='true'&&identity.email===env.ALLOWED_EMAIL&&identity.aud===env.GOOGLE_CLIENT_ID;const ttl=Math.max(5000,Math.min(300000,Number(identity.expires_in||0)*1000));authCache.set(key,{owner:allowed,expires:Date.now()+ttl});if(authCache.size>64)authCache.delete(authCache.keys().next().value);return allowed;
+  const response=await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(token)}`);if(!response.ok)return null;
+  const identity=await response.json();const valid=identity.email_verified==='true'&&identity.aud===env.GOOGLE_CLIENT_ID&&typeof identity.sub==='string';const ttl=Math.max(5000,Math.min(300000,Number(identity.expires_in||0)*1000));const value=valid?identity:null;authCache.set(key,{owner:value,expires:Date.now()+ttl});if(authCache.size>64)authCache.delete(authCache.keys().next().value);return value;
 }
+async function owner(request,env){const identity=await googleIdentity(request,env);return Boolean(identity&&env.ALLOWED_EMAIL&&identity.email===env.ALLOWED_EMAIL);}
 
 export default {async fetch(request,env){
   const url=new URL(request.url);const origin=request.headers.get('Origin');
@@ -64,6 +73,12 @@ export default {async fetch(request,env){
     if(request.method!=='POST')return json({error:'Método não permitido.'},405,headers);
     if(!await owner(request,env))return json({error:'unauthorized'},401,headers);
     const response=await card.fetch(new Request(new URL('/internal/card',url),request));const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
+  }
+  if(url.pathname==='/api/library'){
+    if(request.method!=='GET'&&request.method!=='POST')return json({error:'Método não permitido.'},405,headers);
+    if(Number(request.headers.get('Content-Length')??0)>131072)return json({error:'Solicitação muito grande.'},413,headers);
+    const identity=await googleIdentity(request,env);if(!identity)return json({error:'unauthorized'},401,headers);
+    const library=env.AURORA.getByName(`library:${identity.sub}`);const response=await library.fetch(new Request(new URL('/internal/library',url),request));const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
   }
   const match=url.pathname.match(/^\/api\/connect\/rooms(?:\/([\w-]{12})(?:\/(join|actions))?)?$/);
   if(!match)return json({error:'Não encontrado.'},404,headers);

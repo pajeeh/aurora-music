@@ -26,6 +26,7 @@ jobs:
       - run: npm test
       - run: npm test --prefix connect-service
       - run: npm test --prefix now-playing-service
+      - run: npm test --prefix cloudflare-worker
       - run: npm run build
         env:
           VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
