@@ -2,7 +2,7 @@
   "name": "aurora-music",
   "private": true,
   "description": "Player musical pessoal com experiência própria e reprodução oficial pelo YouTube.",
-  "version": "0.2.0-beta.4",
+  "version": "0.2.0-beta.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,11 +13,12 @@
   "dependencies": {
     "@vitejs/plugin-react": "latest",
     "lucide-react": "latest",
-    "vite": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "vite": "latest"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "typescript": "latest"

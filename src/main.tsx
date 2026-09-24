@@ -60,15 +60,19 @@ import { importAndReadLikes, likeSyncReady, readCloudLikes, writeCloudLike } fro
 
 type View = 'home' | 'library' | 'search' | 'liked' | 'collection' | 'youtube';
 type Filter = 'Tudo' | 'Playlists' | 'Curtidas' | 'Recentes';
+type InstallPromptEvent=Event&{prompt:()=>Promise<void>;userChoice:Promise<{outcome:'accepted'|'dismissed'}>};
 
 function App() {
   const [notice, setNotice] = useState('');
   const account = useAccount(setNotice);
   const library = useLibrary(account.token, account.expire, setNotice);
 
-  const [view, setView] = useState<View>('home');
+  const [view, setView] = useState<View>(()=>new URLSearchParams(location.search).get('view')==='search'?'search':'home');
   const [filter, setFilter] = useState<Filter>('Tudo');
   const [query, setQuery] = useState('');
+  const [installPrompt,setInstallPrompt]=useState<InstallPromptEvent|null>(null);
+  useEffect(()=>{const ready=(event:Event)=>{event.preventDefault();setInstallPrompt(event as InstallPromptEvent);};const installed=()=>setInstallPrompt(null);window.addEventListener('beforeinstallprompt',ready);window.addEventListener('appinstalled',installed);return()=>{window.removeEventListener('beforeinstallprompt',ready);window.removeEventListener('appinstalled',installed);};},[]);
+  async function installApp(){if(!installPrompt)return;await installPrompt.prompt();await installPrompt.userChoice;setInstallPrompt(null);}
 
   const [queue, setQueue] = useState(() =>
     readTracks('aurora-queue-v1', initialTracks)
@@ -842,9 +846,15 @@ function App() {
                 else enqueue(displayedCurrent);
               }}
               collections={collections}
+              recent={recent}
+              favorites={saved}
+              discovery={initialTracks}
+              playTrack={(item, source) => void play(item, source)}
               open={openCollection}
               create={() => setModal('create')}
               browse={() => navigate('library')}
+              search={() => navigate('search')}
+              install={installPrompt ? () => void installApp() : undefined}
             />
           ) : view === 'library' ? (
             <>

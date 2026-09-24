@@ -1,13 +1,5 @@
-const CACHE = 'aurora-shell-neon-v3';
-self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.add('./')).then(() => self.skipWaiting())));
-self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim())));
-self.addEventListener('fetch', event => {
-  const request = event.request;
-  if (new URL(request.url).pathname.startsWith('/api/')) return;
-  if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
-  if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).then(response => { const copy = response.clone(); caches.open(CACHE).then(cache => cache.put(request, copy)); return response; }).catch(() => caches.match(request).then(hit => hit || caches.match('./'))));
-    return;
-  }
-  event.respondWith(caches.match(request).then(hit => hit || fetch(request).then(response => { if (response.ok) { const copy = response.clone(); caches.open(CACHE).then(cache => cache.put(request, copy)); } return response; })));
-});
+const CACHE='aurora-shell-discovery-v1';
+const SHELL=['./','./offline.html','./manifest.webmanifest','./aurora-icon.svg','./aurora-icon-192.png','./aurora-icon-512.png','./aurora-maskable-512.png'];
+self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
+self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',event=>{const request=event.request,url=new URL(request.url);if(request.method!=='GET'||url.origin!==self.location.origin||url.pathname.startsWith('/api/'))return;if(request.mode==='navigate'){event.respondWith(fetch(request).then(response=>{if(!response.ok)throw new Error('bad response');const copy=response.clone();caches.open(CACHE).then(cache=>cache.put('./',copy));return response;}).catch(async()=>await caches.match(request)||await caches.match('./')||await caches.match('./offline.html')));return;}event.respondWith(caches.match(request).then(hit=>hit||fetch(request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(request,copy));}return response;})));});
