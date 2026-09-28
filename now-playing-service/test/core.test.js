@@ -16,9 +16,9 @@ test('normalizes bounded public metadata', () => {
 });
 
 test('escapes untrusted metadata before rendering SVG', () => {
-  const svg = renderSvg({ track: { title: '<script>alert(1)</script>', artist: 'A & B' }, playing: true, updatedAt: new Date().toISOString() });
-  assert.doesNotMatch(svg, /<script>/);
-  assert.match(svg, /&lt;script&gt;/);
+  const svg = renderSvg({ track: { title: '<SCRIPT>alert(1)</SCRIPT>', artist: 'A & B' }, playing: true, updatedAt: new Date().toISOString() });
+  assert.equal(svg.includes('<SCRIPT>'), false);
+  assert.equal(svg.includes('&lt;SCRIPT&gt;'), true);
   assert.match(svg, /A &amp; B/);
   assert.match(svg, /TOCANDO AGORA/);
   assert.match(svg, /animate attributeName="height"/);
