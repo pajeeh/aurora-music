@@ -22,7 +22,7 @@
 - playlists reais da conta conectada, em modo somente leitura;
 - reprodução pelo YouTube IFrame Player oficial;
 - play, pausa, faixa anterior/próxima, volume, posição e avanço automático da fila;
-- busca real com a conta conectada ou uma chave da YouTube Data API;
+- busca real quando a pessoa autoriza o acesso somente leitura ao YouTube;
 - curtidas e fila persistidas no dispositivo;
 - layout responsivo para desktop e telas pequenas;
 - instalação como aplicativo pelo navegador compatível (PWA);
@@ -54,7 +54,7 @@ npm run build
 
 - O áudio e o vídeo são fornecidos pelo player oficial do YouTube.
 - O Aurora não baixa nem intercepta mídia.
-- O login básico está público. A autorização opcional do YouTube ainda está sujeita ao limite do Google para escopos sensíveis não verificados.
+- O login básico e a comunidade estão públicos para qualquer conta Google. A autorização opcional do YouTube ainda está sujeita à análise do Google para escopos sensíveis; sem ela, o player, a comunidade, as playlists locais e o Aurora Connect continuam disponíveis.
 - A identidade do Aurora e a autorização opcional do YouTube usam credenciais de curta duração guardadas somente na sessão da aba. Elas podem ser renovadas ou removidas sem apagar o perfil social e nunca devem ser compartilhadas ou registradas em logs.
 - O projeto é uma experiência pessoal, sem afiliação com Google, YouTube ou Spotify.
 

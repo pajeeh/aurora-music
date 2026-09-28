@@ -1,0 +1,21 @@
+name: Validar mudanças
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm test --prefix connect-service
+      - run: npm test --prefix now-playing-service
+      - run: npm test --prefix cloudflare-worker
+      - run: npm run build

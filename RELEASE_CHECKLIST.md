@@ -16,7 +16,8 @@
 - [x] Relato estruturado de bugs e ideias
 - [x] Canal privado para vulnerabilidades
 - [x] Pipeline com testes e build antes da publicação
-- [ ] OAuth Google verificado para acesso além da lista de testers
+- [x] Login básico público para qualquer conta Google
+- [ ] OAuth do YouTube verificado para liberar `youtube.readonly` sem lista de testers
 - [ ] Monitoramento de disponibilidade do app, Worker e Connect
 - [ ] Política de retenção e remoção para dados do Connect documentada após persistência pública
 
@@ -29,4 +30,4 @@
 - [ ] Lista inicial de 10–20 testers e rodada de feedback
 - [ ] Triagem semanal das issues do beta
 
-O Aurora está pronto para uma rodada controlada de testers. Divulgação ampla depende principalmente da verificação OAuth, homologação multiplataforma e monitoramento.
+O Aurora está pronto para um beta público dos recursos básicos e sociais. A biblioteca pessoal do YouTube deve continuar identificada como recurso opcional limitado até a verificação do escopo, e a divulgação ampla ainda depende de homologação multiplataforma e monitoramento.

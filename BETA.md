@@ -9,7 +9,7 @@ O beta existe para validar o Aurora em navegadores, contas e aparelhos diferente
 3. Busque a letra da faixa atual e acompanhe o destaque durante a reprodução.
 4. Recarregue a página e confirme se fila, curtidas e playlists locais continuam disponíveis.
 5. Em outro navegador ou aparelho, crie uma sessão pelo Aurora Connect e adicione uma faixa à fila.
-6. Se sua conta estiver autorizada no Google Cloud, conecte-a e consulte playlists em modo somente leitura.
+6. Entre com qualquer conta Google para criar seu perfil. Se a autorização do YouTube estiver disponível para sua conta, conecte-a e consulte playlists em modo somente leitura.
 7. Repita o fluxo em uma tela pequena.
 
 ## O que relatar
@@ -20,7 +20,7 @@ Ideias podem ser enviadas pelo [formulário de sugestão](https://github.com/paj
 
 ## Limites conhecidos
 
-- O login Google permanece em modo de testes e só funciona para contas autorizadas.
+- O login básico aceita qualquer conta Google. A conexão opcional com a biblioteca do YouTube ainda pode ser limitada pelo Google enquanto o escopo `youtube.readonly` aguarda verificação.
 - O Aurora não representa toda a biblioteca do YouTube Music.
 - Vídeos removidos, bloqueados ou sem incorporação podem não tocar.
 - O Connect compartilha fila e controle entre navegadores; não descobre Chromecast, AirPlay, TVs ou caixas automaticamente.
