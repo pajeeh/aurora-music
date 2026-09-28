@@ -6,8 +6,7 @@ type SearchItem = {
 };
 
 export async function searchYouTube(query: string, token?: string | null): Promise<Track[] | null> {
-  const key = import.meta.env.VITE_YOUTUBE_API_KEY as string | undefined;
-  if (!key && !token) return null;
+  if (!token) return null;
   const params = new URLSearchParams({
     part: "snippet",
     type: "video",
@@ -15,10 +14,9 @@ export async function searchYouTube(query: string, token?: string | null): Promi
     maxResults: "18",
     regionCode: "BR",
     relevanceLanguage: "pt",
-    q: query,
-    ...(token ? {} : { key: key! })
+    q: query
   });
-  const response = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`, { headers: token ? { Authorization: `Bearer ${token}` } : {}, signal: AbortSignal.timeout(15000) });
+  const response = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(15000) });
   if (response.status === 401) throw new Error("Sua conexão expirou. Conecte sua conta novamente.");
   if (!response.ok) throw new Error("Não foi possível buscar no YouTube agora.");
   const data = await response.json() as { items: SearchItem[] };

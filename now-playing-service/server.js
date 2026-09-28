@@ -14,7 +14,7 @@ const send = (res, status, body, type = 'application/json') => { res.writeHead(s
 async function authenticate(req) {
   const token = req.headers.authorization?.match(/^Bearer (.+)$/)?.[1];
   if (!token || !allowedEmail || !clientId) return false;
-  const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(token)}`, { signal: AbortSignal.timeout(8000) });
+  const response = await fetch('https://oauth2.googleapis.com/tokeninfo', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams({access_token:token}), signal: AbortSignal.timeout(8000) });
   if (!response.ok) return false;
   const identity = await response.json();
   return identity.email_verified === 'true' && identity.email === allowedEmail && identity.aud === clientId;

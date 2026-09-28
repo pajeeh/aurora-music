@@ -14,7 +14,13 @@ test('migrates the remembered profile from an expired legacy session without res
   const store = storage();
   store.setItem('aurora-google-session-v1', JSON.stringify({token:'expired',expiresAt:100,profile:{name:'Legacy'}}));
   assert.deepEqual(readRememberedGoogleProfile(store), {name:'Legacy'});
+  assert.equal(store.getItem('aurora-google-session-v1'), null);
   assert.equal(readGoogleSession(store, 200), null);
   forgetGoogleProfile(store);
   assert.equal(readRememberedGoogleProfile(store), null);
+});
+test('removes malformed legacy authorization data even when no profile can be recovered',()=>{
+  const store=storage();store.setItem('aurora-google-session-v1','{broken');
+  assert.equal(readRememberedGoogleProfile(store),null);
+  assert.equal(store.getItem('aurora-google-session-v1'),null);
 });

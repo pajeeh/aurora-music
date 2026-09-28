@@ -3,6 +3,7 @@ import { Rooms } from '../../connect-service/rooms.js';
 import { normalizePayload, renderSvg } from '../../now-playing-service/core.js';
 import { applyLibraryAction, publicLibrary } from './library-state.js';
 import { applySocialAction, publicSocialProfile, socialMatch, socialPublic } from './social-state.js';
+import { boundedForward } from './request-guard.js';
 
 const json=(value,status=200,headers={})=>new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers}});
 const cors=origin=>({'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Headers':'Authorization, Content-Type','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Vary':'Origin'});
@@ -67,7 +68,7 @@ export class AuroraState extends DurableObject {
 async function googleIdentity(request,env){
   const token=request.headers.get('Authorization')?.match(/^Bearer (.+)$/)?.[1];if(!token||!env.GOOGLE_CLIENT_ID)return null;
   const key=await tokenKey(token);const cached=authCache.get(key);if(cached&&cached.expires>Date.now())return cached.owner;
-  const idToken=token.split('.').length===3;const response=await fetch(`https://oauth2.googleapis.com/tokeninfo?${idToken?'id_token':'access_token'}=${encodeURIComponent(token)}`);if(!response.ok)return null;
+  const idToken=token.split('.').length===3;const response=await fetch('https://oauth2.googleapis.com/tokeninfo',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({[idToken?'id_token':'access_token']:token})});if(!response.ok)return null;
   const identity=await response.json();const valid=(identity.email_verified===true||identity.email_verified==='true')&&identity.aud===env.GOOGLE_CLIENT_ID&&typeof identity.sub==='string';const seconds=idToken?Number(identity.exp)-Math.floor(Date.now()/1000):Number(identity.expires_in||0);const ttl=Math.max(5000,Math.min(300000,seconds*1000));const value=valid?identity:null;authCache.set(key,{owner:value,expires:Date.now()+ttl});if(authCache.size>64)authCache.delete(authCache.keys().next().value);return value;
 }
 async function owner(request,env){const identity=await googleIdentity(request,env);return Boolean(identity&&env.ALLOWED_EMAIL&&identity.email===env.ALLOWED_EMAIL);}
@@ -83,19 +84,17 @@ export default {async fetch(request,env){
     if(request.method==='GET'){const response=await card.fetch(new Request(new URL('/internal/now-playing',url)));const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;}
     if(request.method!=='POST')return json({error:'Método não permitido.'},405,headers);
     if(!await owner(request,env))return json({error:'unauthorized'},401,headers);
-    const response=await card.fetch(new Request(new URL('/internal/card',url),request));const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
+    const forwarded=await boundedForward(request,new URL('/internal/card',url),32768);if(!forwarded)return json({error:'Solicitação muito grande.'},413,headers);const response=await card.fetch(forwarded);const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
   }
   if(url.pathname==='/api/library'){
     if(request.method!=='GET'&&request.method!=='POST')return json({error:'Método não permitido.'},405,headers);
-    if(Number(request.headers.get('Content-Length')??0)>131072)return json({error:'Solicitação muito grande.'},413,headers);
     const identity=await googleIdentity(request,env);if(!identity)return json({error:'unauthorized'},401,headers);
-    const library=env.AURORA.getByName(`library:${identity.sub}`);const response=await library.fetch(new Request(new URL('/internal/library',url),request));const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
+    const forwarded=await boundedForward(request,new URL('/internal/library',url));if(!forwarded)return json({error:'Solicitação muito grande.'},413,headers);const library=env.AURORA.getByName(`library:${identity.sub}`);const response=await library.fetch(forwarded);const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
   }
   if(url.pathname==='/api/social'){
     if(request.method!=='GET'&&request.method!=='POST')return json({error:'Método não permitido.'},405,headers);
-    if(Number(request.headers.get('Content-Length')??0)>131072)return json({error:'Solicitação muito grande.'},413,headers);
     const identity=await googleIdentity(request,env);if(!identity)return json({error:'unauthorized'},401,headers);
-    const social=env.AURORA.getByName('social:global');const forwarded=new Request(new URL('/internal/social',url),request);forwarded.headers.set('X-Aurora-Viewer',identity.sub);const response=await social.fetch(forwarded);const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
+    const forwarded=await boundedForward(request,new URL('/internal/social',url));if(!forwarded)return json({error:'Solicitação muito grande.'},413,headers);forwarded.headers.set('X-Aurora-Viewer',identity.sub);const social=env.AURORA.getByName('social:global');const response=await social.fetch(forwarded);const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
   }
   if(url.pathname==='/api/social/public'){
     if(request.method!=='GET')return json({error:'Método não permitido.'},405,headers);const handle=url.searchParams.get('handle')??'';if(!/^[a-z0-9_]{3,24}$/.test(handle))return json({error:'Perfil inválido.'},400,headers);
@@ -109,5 +108,5 @@ export default {async fetch(request,env){
   if(!match)return json({error:'Não encontrado.'},404,headers);
   const roomCode=match[1]??code();const stub=env.AURORA.getByName(`room:${roomCode}`);
   const path=match[1]?`/room/${roomCode}${match[2]?'/'+match[2]:''}`:`/create/${roomCode}`;
-  const response=await stub.fetch(new Request(new URL(path,url),request));const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
+  const forwarded=await boundedForward(request,new URL(path,url),262144);if(!forwarded)return json({error:'Solicitação muito grande.'},413,headers);const response=await stub.fetch(forwarded);const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
 }};

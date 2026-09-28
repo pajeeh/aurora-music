@@ -7,7 +7,10 @@ export function rememberGoogleProfile(storage: Store, profile: GoogleProfile) {
 export function readRememberedGoogleProfile(storage: Store): GoogleProfile | null {
   try {
     const raw = storage.getItem(KEY);
-    const profile = raw ? JSON.parse(raw) : JSON.parse(storage.getItem('aurora-google-session-v1') ?? 'null')?.profile;
+    const legacyRaw = raw ? null : storage.getItem('aurora-google-session-v1');
+    if (legacyRaw) storage.removeItem('aurora-google-session-v1');
+    const legacy = legacyRaw ? JSON.parse(legacyRaw) : null;
+    const profile = raw ? JSON.parse(raw) : legacy?.profile;
     if (typeof profile?.name !== 'string' || !profile.name.trim()) return null;
     const valid = { name: profile.name, ...(typeof profile.avatar === 'string' && profile.avatar.startsWith('https://') ? { avatar: profile.avatar } : {}) };
     rememberGoogleProfile(storage, valid);
