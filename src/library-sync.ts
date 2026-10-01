@@ -1,7 +1,8 @@
 import type { Track } from './types';
+import type { Collection } from './collections';
 const ENDPOINT=(import.meta.env.VITE_AURORA_API_ENDPOINT||import.meta.env.VITE_NOW_PLAYING_ENDPOINT) as string|undefined;
 const DEVICE_KEY='aurora-sync-device-v1';
-type CloudLibrary={likedTracks:Track[];revision:number};
+export type CloudLibrary={likedTracks:Track[];collections:Collection[];recent:Track[];revision:number};
 function deviceId(){let value=localStorage.getItem(DEVICE_KEY);if(!value){value=crypto.randomUUID();localStorage.setItem(DEVICE_KEY,value);}return value;}
 async function call(token:string,body?:unknown):Promise<CloudLibrary>{
   if(!ENDPOINT)throw new Error('Sincronização em nuvem não configurada.');
@@ -11,6 +12,8 @@ async function call(token:string,body?:unknown):Promise<CloudLibrary>{
   return response.json();
 }
 export const likeSyncReady=()=>Boolean(ENDPOINT);
-export const importAndReadLikes=(token:string,tracks:Track[])=>call(token,{type:'import',deviceId:deviceId(),tracks});
-export const readCloudLikes=(token:string)=>call(token);
+export const importAndReadLibrary=(token:string,likedTracks:Track[],collections:Collection[],recent:Track[])=>call(token,{type:'import',deviceId:deviceId(),tracks:likedTracks,collections,recent});
+export const readCloudLibrary=(token:string)=>call(token);
 export const writeCloudLike=(token:string,track:Track,liked:boolean)=>call(token,{type:'like',track,liked});
+export const writeCloudCollection=(token:string,collection:Collection)=>call(token,{type:'collection',collection});
+export const writeCloudRecent=(token:string,track:Track)=>call(token,{type:'recent',track});

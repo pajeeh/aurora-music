@@ -17,6 +17,7 @@
 - [x] Canal privado para vulnerabilidades
 - [x] Pipeline com testes e build antes da publicação
 - [x] Login básico público para qualquer conta Google
+- [x] Sincronização de curtidas, playlists próprias e histórico entre navegadores autenticados
 - [ ] OAuth do YouTube verificado para liberar `youtube.readonly` sem lista de testers
 - [ ] Monitoramento de disponibilidade do app, Worker e Connect
 - [ ] Política de retenção e remoção para dados do Connect documentada após persistência pública

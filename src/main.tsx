@@ -56,7 +56,7 @@ import './pirate.css';
 import './aurora.css';
 import { LyricsPanel } from './LyricsPanel';
 import { useMediaSession } from './useMediaSession';
-import { importAndReadLikes, likeSyncReady, readCloudLikes, writeCloudLike } from './library-sync';
+import { importAndReadLibrary, likeSyncReady, readCloudLibrary, writeCloudCollection, writeCloudLike, writeCloudRecent } from './library-sync';
 import { SocialStage } from './SocialStage';
 import { GoogleSignInButton } from './GoogleSignInButton';
 import { activateUpdate, isStandalone, registerAuroraServiceWorker, watchConnectivity } from './pwa';
@@ -184,12 +184,14 @@ function App() {
   const selectedCollection = collections.find(item => item.id === selected);
   const liked = useMemo(() => new Set(saved.map(t => t.id)), [saved]);
   const savedRef=useRef(saved);savedRef.current=saved;
+  const collectionsRef=useRef(collections);collectionsRef.current=collections;
+  const recentRef=useRef(recent);recentRef.current=recent;
 
   useEffect(()=>{
     if(!account.identityToken||!likeSyncReady())return;
     const token=account.identityToken;let active=true;let busy=false;
-    const apply=(value:{likedTracks:Track[]})=>{if(active)setSaved(value.likedTracks);};
-    const refresh=async(first=false)=>{if(busy||document.visibilityState==='hidden')return;busy=true;try{apply(first?await importAndReadLikes(token,savedRef.current):await readCloudLikes(token));}catch(error){if(first&&active)setNotice((error as Error).message);}finally{busy=false;}};
+    const apply=(value:{likedTracks:Track[];collections:typeof collections;recent:Track[]})=>{if(active){setSaved(value.likedTracks);setCollections(value.collections);setRecent(value.recent);}};
+    const refresh=async(first=false)=>{if(busy||document.visibilityState==='hidden')return;busy=true;try{apply(first?await importAndReadLibrary(token,savedRef.current,collectionsRef.current,recentRef.current):await readCloudLibrary(token));}catch(error){if(first&&active)setNotice((error as Error).message);}finally{busy=false;}};
     void refresh(true);const timer=setInterval(()=>void refresh(),15000);const focus=()=>void refresh();window.addEventListener('focus',focus);return()=>{active=false;clearInterval(timer);window.removeEventListener('focus',focus);};
   },[account.identityToken]);
 
@@ -348,6 +350,7 @@ function App() {
     setCurrent(track);
     player.load(track.id);
     setRecent(items => [track, ...items.filter(t => t.id !== track.id)].slice(0, 30));
+    if(account.identityToken&&likeSyncReady())void writeCloudRecent(account.identityToken,track).then(value=>setRecent(value.recent)).catch(()=>undefined);
     if (source) {
       setShuffle(false);
       setQueue(Array.from(new Map(source.map(t => [t.id, t])).values()));
@@ -389,6 +392,7 @@ function App() {
     try {
       const value = createCollection(playlistName, crypto.randomUUID());
       setCollections(items => [value, ...items]);
+      if(account.identityToken&&likeSyncReady())void writeCloudCollection(account.identityToken,value).then(result=>setCollections(result.collections)).catch(error=>setNotice((error as Error).message));
       setPlaylistName('');
       setModal(null);
       openCollection(value.id);
@@ -633,13 +637,11 @@ function App() {
       remove={
         removable
           ? track =>
-              setCollections(items =>
-                items.map(item =>
-                  item.id === selected
-                    ? { ...item, tracks: item.tracks.filter(t => t.id !== track.id) }
-                    : item
-                )
-              )
+              setCollections(items => {
+                const next=items.map(item=>item.id===selected?{...item,tracks:item.tracks.filter(t=>t.id!==track.id)}:item);
+                const changed=next.find(item=>item.id===selected);if(changed&&account.identityToken&&likeSyncReady())void writeCloudCollection(account.identityToken,changed).then(result=>setCollections(result.collections)).catch(error=>setNotice((error as Error).message));
+                return next;
+              })
           : undefined
       }
     />
@@ -1452,13 +1454,11 @@ function App() {
               className="save-option"
               key={item.id}
               onClick={() => {
-                setCollections(items =>
-                  items.map(collection =>
-                    collection.id === item.id
-                      ? addToCollection(collection, saveTrack)
-                      : collection
-                  )
-                );
+                setCollections(items => {
+                  const next=items.map(collection=>collection.id===item.id?addToCollection(collection,saveTrack):collection);
+                  const changed=next.find(collection=>collection.id===item.id);if(changed&&account.identityToken&&likeSyncReady())void writeCloudCollection(account.identityToken,changed).then(result=>setCollections(result.collections)).catch(error=>setNotice((error as Error).message));
+                  return next;
+                });
                 setModal(null);
                 setNotice(`Salva em ${item.title}.`);
               }}

@@ -54,7 +54,8 @@ Recurso de destaque para comparar duas identidades musicais e criar uma experiê
 
 - fila inteligente e recuperação automática de vídeos indisponíveis;
 - letras com tradução quando houver fonte autorizada;
-- continuidade entre celular e computador;
+- [x] biblioteca básica sincronizada entre celular e computador: curtidas, playlists próprias e histórico recente;
+- continuidade da posição exata de reprodução entre celular e computador;
 - controles remotos pelo Aurora Connect;
 - avaliação técnica de crossfade dentro das limitações do player oficial.
 
