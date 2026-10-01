@@ -105,7 +105,7 @@ Para apresentações presenciais, use o [roteiro de demonstração do evento](EV
 - companion oficial para presença musical no Discord, com faixa, capa, progresso e Aurora Connect;
 - beta nas lojas do Windows e Android após identidade, domínio e assinaturas.
 
-O plano completo, incluindo **Aurora Match**, descoberta musical, comunidade, segurança e aplicativos, está no [roadmap do Aurora](ROADMAP.md).
+O plano completo, incluindo **Aurora Match**, descoberta musical, comunidade, segurança e aplicativos, está no [roadmap do Aurora](ROADMAP.md). A estratégia para [presença em redes sociais](docs/SOCIAL_INTEGRATIONS.md) cobre Instagram, WhatsApp, Facebook e o perfil musical vivo.
 
 ## Uso
 
