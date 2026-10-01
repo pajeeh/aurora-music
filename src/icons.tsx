@@ -57,3 +57,4 @@ export const CirclePlay = aurora(Glyphs.CirclePlay);
 export const RefreshCw = aurora(Glyphs.RefreshCw);
 export const Lock = aurora(Glyphs.Lock);
 export const Trash = aurora(Glyphs.Trash2);
+export const Bell = aurora(Glyphs.Bell);
