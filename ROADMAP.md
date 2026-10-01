@@ -52,7 +52,8 @@ Recurso de destaque para comparar duas identidades musicais e criar uma experiê
 
 ## Player e dispositivos
 
-- fila inteligente e recuperação automática de vídeos indisponíveis;
+- [x] recuperação automática de vídeos indisponíveis por uma versão alternativa compatível;
+- fila inteligente com recomendações contextuais;
 - letras com tradução quando houver fonte autorizada;
 - [x] biblioteca básica sincronizada entre celular e computador: curtidas, playlists próprias e histórico recente;
 - continuidade da posição exata de reprodução entre celular e computador;

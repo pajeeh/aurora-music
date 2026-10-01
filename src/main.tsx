@@ -124,6 +124,7 @@ function App() {
   const [panel, setPanel] = useState<'queue' | 'devices' | 'lyrics'>('queue');
   const [panelOpen, setPanelOpen] = useState(false);
   const [fallbackBusy, setFallbackBusy] = useState(false);
+  const automaticFallback = useRef('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function showPanel(value: 'queue' | 'devices' | 'lyrics') {
@@ -451,6 +452,14 @@ function App() {
       setFallbackBusy(false);
     }
   }
+
+  useEffect(() => {
+    if (group.state || ![100, 101, 150].includes(player.errorCode ?? 0)) return;
+    const songKey = `${displayedCurrent.title.trim().toLowerCase()}\u0000${displayedCurrent.artist.trim().toLowerCase()}`;
+    if (automaticFallback.current === songKey) return;
+    automaticFallback.current = songKey;
+    void attemptSmartFallback();
+  }, [player.errorCode, displayedCurrent.id, !!group.state]);
 
   // Backup export / import handlers
   function handleExportLibrary() {
