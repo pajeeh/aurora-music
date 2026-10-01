@@ -9,7 +9,8 @@
     "build": "tsc -b && vite build",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "preview": "vite preview",
-    "platform:check": "node scripts/platform-readiness.mjs"
+    "platform:check": "node scripts/platform-readiness.mjs",
+    "store:assets": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/create-microsoft-store-assets.ps1"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
