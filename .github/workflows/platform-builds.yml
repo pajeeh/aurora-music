@@ -1,0 +1,49 @@
+name: Construir aplicativos
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  android-debug:
+    name: Android · APK de teste
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: platforms/android
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v5
+      - run: chmod +x gradlew
+      - run: ./gradlew assembleDebug --no-daemon
+      - name: Guardar APK
+        uses: actions/upload-artifact@v6
+        with:
+          name: aurora-android-debug
+          path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  windows-pwa:
+    name: Windows · validar PWA
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npm run platform:check
+      - name: Guardar pacote web validado
+        uses: actions/upload-artifact@v6
+        with:
+          name: aurora-windows-pwa-source
+          path: dist
+          if-no-files-found: error
+          retention-days: 14

@@ -59,6 +59,7 @@ import { useMediaSession } from './useMediaSession';
 import { importAndReadLikes, likeSyncReady, readCloudLikes, writeCloudLike } from './library-sync';
 import { SocialStage } from './SocialStage';
 import { GoogleSignInButton } from './GoogleSignInButton';
+import { activateUpdate, isStandalone, registerAuroraServiceWorker, watchConnectivity } from './pwa';
 
 type View = 'home' | 'social' | 'library' | 'search' | 'liked' | 'collection' | 'youtube';
 type Filter = 'Tudo' | 'Playlists' | 'Curtidas' | 'Recentes';
@@ -73,7 +74,13 @@ function App() {
   const [filter, setFilter] = useState<Filter>('Tudo');
   const [query, setQuery] = useState('');
   const [installPrompt,setInstallPrompt]=useState<InstallPromptEvent|null>(null);
+  const [offline,setOffline]=useState(()=>!navigator.onLine);
+  const [updateRegistration,setUpdateRegistration]=useState<ServiceWorkerRegistration|null>(null);
+  const installed=isStandalone();
   useEffect(()=>{const ready=(event:Event)=>{event.preventDefault();setInstallPrompt(event as InstallPromptEvent);};const installed=()=>setInstallPrompt(null);window.addEventListener('beforeinstallprompt',ready);window.addEventListener('appinstalled',installed);return()=>{window.removeEventListener('beforeinstallprompt',ready);window.removeEventListener('appinstalled',installed);};},[]);
+  useEffect(()=>watchConnectivity(setOffline),[]);
+  useEffect(()=>{void registerAuroraServiceWorker(setUpdateRegistration).catch(()=>undefined);},[]);
+  useEffect(()=>{if(!updateRegistration)return;const reload=()=>location.reload();navigator.serviceWorker.addEventListener('controllerchange',reload,{once:true});return()=>navigator.serviceWorker.removeEventListener('controllerchange',reload);},[updateRegistration]);
   async function installApp(){if(!installPrompt)return;await installPrompt.prompt();await installPrompt.userChoice;setInstallPrompt(null);}
 
   const [queue, setQueue] = useState(() =>
@@ -818,6 +825,17 @@ function App() {
           </div>
         </header>
 
+        {offline && (
+          <div className="notice connectivity-notice" role="status">
+            <span>Você está offline. A biblioteca salva continua disponível; busca, login e sincronização voltam quando a conexão retornar.</span>
+          </div>
+        )}
+        {updateRegistration && (
+          <div className="notice update-notice" role="status">
+            <span>Uma nova versão do Aurora está pronta.</span>
+            <button className="notice-action" onClick={()=>activateUpdate(updateRegistration)}>Atualizar agora</button>
+          </div>
+        )}
         {notice && (
           <div className="notice" role="status">
             <span>{notice}</span>
@@ -854,7 +872,7 @@ function App() {
               create={() => setModal('create')}
               browse={() => navigate('library')}
               search={() => navigate('search')}
-              install={installPrompt ? () => void installApp() : undefined}
+              install={!installed && installPrompt ? () => void installApp() : undefined}
               connect={() => setModal('connect')}
             />
           ) : view === 'social' ? (
@@ -1634,11 +1652,3 @@ createRoot(document.getElementById('root')!).render(
     </AppErrorBoundary>
   </React.StrictMode>
 );
-
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () =>
-    navigator.serviceWorker
-      .register(`${import.meta.env.BASE_URL}sw.js`)
-      .catch(() => undefined)
-  );
-}

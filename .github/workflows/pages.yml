@@ -32,6 +32,7 @@ jobs:
           VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
           VITE_NOW_PLAYING_ENDPOINT: ${{ vars.VITE_NOW_PLAYING_ENDPOINT }}
           VITE_CONNECT_ENDPOINT: ${{ vars.VITE_CONNECT_ENDPOINT }}
+      - run: npm run platform:check
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:

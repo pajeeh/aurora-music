@@ -60,11 +60,13 @@ Recurso de destaque para comparar duas identidades musicais e criar uma experiê
 
 ## Aplicativos e integrações
 
-- Android via PWA e Trusted Web Activity;
+- [x] base PWA compartilhada para Windows e Android;
+- Android via Trusted Web Activity, pendente de domínio próprio e assinatura;
+- Windows via pacote PWA/MSIX, pendente de identidade no Partner Center;
 - Aurora Companion para Discord Rich Presence;
 - extensão para navegador e VS Code;
 - links universais para músicas, perfis e playlists;
-- preparação futura para Windows, macOS e Linux.
+- preparação futura para macOS e Linux.
 
 ## Plataforma e confiança
 

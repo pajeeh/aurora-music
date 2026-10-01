@@ -10,3 +10,15 @@ dist/
 artifacts/
 connect-service/data/
 **/.wrangler/
+platforms/**/build/
+platforms/**/.gradle/
+platforms/**/*.aab
+platforms/**/*.apk
+platforms/**/*.appx
+platforms/**/*.msix
+platforms/**/*.msixbundle
+platforms/**/*.pfx
+platforms/**/*.jks
+platforms/**/*.keystore
+/aurora-*.mp4
+/aurora-*-contact.jpg

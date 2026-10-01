@@ -86,7 +86,7 @@ O código do convite concede acesso à sessão: compartilhe apenas com pessoas c
 
 Quando a conta Google está conectada e `VITE_NOW_PLAYING_ENDPOINT` está configurado, as curtidas locais são mescladas uma vez por navegador e sincronizadas pelo serviço do Aurora. Sem conexão, as curtidas continuam disponíveis no dispositivo e voltam a sincronizar na próxima autorização.
 
-O Aurora também pode ser instalado como PWA no desktop e no Android. A estratégia para publicação na Play Store usa Trusted Web Activity e está documentada em [docs/ANDROID.md](docs/ANDROID.md).
+O Aurora também pode ser instalado como PWA no desktop e no Android. A mesma base será distribuída como MSIX/PWA no Windows e Trusted Web Activity no Android, preservando login, player e atualizações. Veja [Windows](docs/WINDOWS.md), [Android](docs/ANDROID.md) e o [gate multiplataforma](docs/PLATFORM_RELEASE.md).
 
 O Connect público usa o Worker do Aurora por HTTPS e permite sessões por convite entre navegadores. Não há descoberta automática de equipamentos, Chromecast, AirPlay ou integração direta com TVs e caixas de som. O código do convite concede acesso temporário à sessão e não deve ser publicado.
 
@@ -103,7 +103,7 @@ Para apresentações presenciais, use o [roteiro de demonstração do evento](EV
 ## Próximas faixas
 
 - companion para presença no Discord e extensão para VS Code;
-- empacotamento para Windows e Android.
+- beta nas lojas do Windows e Android após identidade, domínio e assinaturas.
 
 O plano completo, incluindo **Aurora Match**, descoberta musical, comunidade, segurança e aplicativos, está no [roadmap do Aurora](ROADMAP.md).
 

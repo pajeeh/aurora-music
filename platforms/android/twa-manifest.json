@@ -1,0 +1,69 @@
+{
+  "packageId": "com.pajeeh.aurora",
+  "host": "pajeeh.github.io",
+  "name": "Aurora Music",
+  "launcherName": "Aurora",
+  "display": "standalone",
+  "themeColor": "#101425",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#090D19",
+  "enableNotifications": false,
+  "startUrl": "/aurora-music/?source=android",
+  "iconUrl": "https://pajeeh.github.io/aurora-music/aurora-icon-512.png",
+  "maskableIconUrl": "https://pajeeh.github.io/aurora-music/aurora-maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "2",
+  "appVersionCode": 2,
+  "shortcuts": [
+    {
+      "name": "Buscar músicas",
+      "shortName": "Buscar",
+      "url": "https://pajeeh.github.io/aurora-music/?view=search&source=shortcut",
+      "chosenIconUrl": "https://pajeeh.github.io/aurora-music/aurora-icon-192.png"
+    },
+    {
+      "name": "Abrir Comunidade",
+      "shortName": "Comunidade",
+      "url": "https://pajeeh.github.io/aurora-music/?view=social&source=shortcut",
+      "chosenIconUrl": "https://pajeeh.github.io/aurora-music/aurora-icon-192.png"
+    },
+    {
+      "name": "Abrir o Aurora",
+      "shortName": "Início",
+      "url": "https://pajeeh.github.io/aurora-music/?source=shortcut",
+      "chosenIconUrl": "https://pajeeh.github.io/aurora-music/aurora-icon-192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://pajeeh.github.io/aurora-music/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://pajeeh.github.io/aurora-music/",
+  "minSdkVersion": 21,
+  "orientation": "any",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "",
+  "displayOverride": [
+    "window-controls-overlay",
+    "standalone"
+  ],
+  "appVersion": "2"
+}
