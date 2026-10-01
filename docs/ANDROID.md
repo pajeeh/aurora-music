@@ -32,7 +32,9 @@ O projeto TWA está em `platforms/android`, com application ID `com.pajeeh.auror
 ## Comportamento da PWA pública
 
 - O Aurora procura uma versão nova quando o aplicativo volta ao foco.
+- Enquanto estiver aberto, o Aurora também procura uma versão nova a cada cinco minutos e assim que a conexão retornar.
 - Quando uma atualização termina de baixar, a interface oferece **Atualizar agora** e só então troca o service worker.
+- O botão só aparece quando a nova versão já está pronta para assumir, sem depender da Play Store ou de uma conta Google.
 - Sem rede, a navegação abre o shell salvo e deixa claro quais recursos dependem da conexão.
 - O botão de instalação aparece somente quando o navegador oferece a instalação e o Aurora ainda não está em modo standalone.
 

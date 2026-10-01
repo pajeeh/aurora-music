@@ -33,7 +33,10 @@ export async function registerAuroraServiceWorker(
       if (worker.state === 'installed') reportWaitingWorker();
     });
   });
-  window.addEventListener('focus', () => void registration.update());
+  const checkForUpdate = () => void registration.update().catch(() => undefined);
+  window.addEventListener('focus', checkForUpdate);
+  window.addEventListener('online', checkForUpdate);
+  window.setInterval(checkForUpdate, 5 * 60 * 1000);
   return registration;
 }
 

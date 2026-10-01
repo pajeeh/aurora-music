@@ -14,6 +14,7 @@ O pacote para a Microsoft Store será um MSIX gerado pelo PWABuilder. A Store as
 - atalhos para Início, Busca e Comunidade;
 - biblioteca local durante quedas de conexão;
 - aviso e aplicação controlada de novas versões;
+- verificação automática a cada cinco minutos, com botão exibido apenas quando uma versão nova está pronta;
 - interface responsiva para janelas compactas e telas grandes.
 
 ## Pacote da Microsoft Store
