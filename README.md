@@ -102,7 +102,7 @@ Para apresentações presenciais, use o [roteiro de demonstração do evento](EV
 
 ## Próximas faixas
 
-- companion para presença no Discord e extensão para VS Code;
+- companion oficial para presença musical no Discord, com faixa, capa, progresso e Aurora Connect;
 - beta nas lojas do Windows e Android após identidade, domínio e assinaturas.
 
 O plano completo, incluindo **Aurora Match**, descoberta musical, comunidade, segurança e aplicativos, está no [roadmap do Aurora](ROADMAP.md).
