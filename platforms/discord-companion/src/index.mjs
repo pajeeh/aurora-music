@@ -1,10 +1,9 @@
-import fs from 'node:fs/promises';import os from 'node:os';import path from 'node:path';import process from 'node:process';import readline from 'node:readline/promises';
+import fs from 'node:fs/promises';import os from 'node:os';import process from 'node:process';import readline from 'node:readline/promises';
 import {activityKey,toDiscordActivity} from './activity.mjs';
 import {protectSecret,unprotectSecret} from './secrets.mjs';
 import {createSocialSdkClient,socialSdkAvailable} from './social-sdk-client.mjs';
+import {appId,configDir,configPath,endpoint} from './settings.mjs';
 
-const endpoint=(process.env.AURORA_PRESENCE_ENDPOINT||'https://aurora-edge.aurora-edge.workers.dev').replace(/\/$/,'');
-const appId=process.env.DISCORD_APPLICATION_ID||'1555389940542611596';const configDir=path.join(process.env.LOCALAPPDATA||path.join(os.homedir(),'.aurora'),'Aurora');const configPath=path.join(configDir,'discord-companion.json');
 async function readConfig(){try{return JSON.parse(await fs.readFile(configPath,'utf8'));}catch{return {};}}
 async function saveConfig(value){await fs.mkdir(configDir,{recursive:true});await fs.writeFile(configPath,JSON.stringify(value,null,2),{mode:0o600});}
 async function createRpcClient(){const {default:DiscordRPC}=await import('discord-rpc');DiscordRPC.register(appId);const rpc=new DiscordRPC.Client({transport:'ipc'});await new Promise((resolve,reject)=>{rpc.once('ready',resolve);rpc.once('error',reject);void rpc.login({clientId:appId}).catch(reject);});return {transport:'rpc',setActivity:value=>rpc.setActivity(value),clearActivity:()=>rpc.clearActivity(),destroy:()=>rpc.destroy()};}

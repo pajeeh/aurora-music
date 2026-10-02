@@ -14,6 +14,15 @@ O Companion prefere o **Discord Social SDK oficial** e envia a atividade como `L
 6. Execute `npm run pair -- 12345678` substituindo pelo código exibido.
 7. Execute `npm start` com o Discord Desktop aberto.
 
+## Uso diário no Windows
+
+- `npm run doctor` confere pareamento, nuvem, Social SDK e biblioteca nativa sem revelar credenciais.
+- `npm run install:windows` cria um lançador local em `%LOCALAPPDATA%\Aurora\Discord Companion`.
+- `npm run startup:install` ativa o Companion ao entrar no Windows.
+- `npm run startup:remove` desativa a inicialização automática sem apagar o pareamento.
+
+O diagnóstico termina com erro quando o Companion não conseguir funcionar e usa avisos quando puder continuar pelo RPC compatível. O log da inicialização automática fica somente no computador, em `%LOCALAPPDATA%\Aurora\Discord Companion\companion.log`, e é limitado automaticamente para não crescer sem controle.
+
 O ZIP, as DLLs extraídas e os binários compilados ficam ignorados pelo Git. Para forçar o fallback durante diagnóstico, use `AURORA_DISCORD_TRANSPORT=rpc`.
 
 O aplicativo oficial **Aurora Music** usa o Application ID público `1555389940542611596` e o asset Rich Presence `aurora`. `DISCORD_APPLICATION_ID` continua disponível apenas para desenvolvimento com outro aplicativo.
