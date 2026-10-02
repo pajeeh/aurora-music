@@ -1,6 +1,8 @@
 node_modules/
 dist/
 .env.local
+platforms/discord-companion/vendor/
+platforms/discord-companion/native-social-sdk/target/
 *.tsbuildinfo
 .env
 .env.*

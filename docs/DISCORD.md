@@ -52,7 +52,7 @@ O Companion deve guardar o token no cofre de credenciais do sistema, limitar a o
 
 Já estão implementados o serviço multiusuário, a publicação privada pelo player, os códigos descartáveis, a revogação por dispositivo, a expiração da faixa e o Companion para Windows em `platforms/discord-companion`.
 
-O aplicativo **Aurora Music** foi criado no Discord Developer Portal com o Application ID público `1555389940542611596`, o asset `aurora`, ícone, descrição, termos e privacidade. O Companion já inclui esse identificador e usa o transporte IPC do Discord Desktop; não exige bot em servidor. O teste real confirmou faixa, artista, capa e tempo no perfil. O RPC público rotula a atividade como **Jogando Aurora Music**. A candidatura ao Social SDK foi enviada e o acesso à versão `1.10.19337` foi liberado imediatamente. As respostas, evidências, checksum e o gate de migração estão no [pacote de candidatura](DISCORD-SOCIAL-SDK-APPLICATION.md). O SDK enumera o tipo `Listening`, mas o Discord controla sua renderização; o Companion manterá `Playing` como fallback até a validação real.
+O aplicativo **Aurora Music** foi criado no Discord Developer Portal com o Application ID público `1555389940542611596`, o asset `aurora`, ícone, descrição, termos e privacidade. A candidatura ao Social SDK foi enviada e o acesso à versão `1.10.19337` foi liberado imediatamente. O Companion agora usa o SDK oficial no Windows, envia `ActivityTypes::Listening` e mantém o RPC anterior como fallback automático. O teste real confirmou faixa, artista, capa e tempo no perfil, mas o cliente Discord ainda apresentou **Jogando Aurora Music**. Isso corresponde à documentação incluída no próprio SDK, que afirma que `Playing` é o único tipo efetivamente relevante para Rich Presence de aplicativos comuns. O rótulo **Ouvindo** continua reservado pelo Discord apesar do valor enviado. As evidências, o checksum e o gate de migração estão no [pacote de candidatura](DISCORD-SOCIAL-SDK-APPLICATION.md).
 
 ## Entregas
 
@@ -71,6 +71,7 @@ O aplicativo **Aurora Music** foi criado no Discord Developer Portal com o Appli
 - ✅ criar presença privada multiusuário no Cloudflare Worker;
 - ✅ parear e revogar dispositivos pela tela de configurações;
 - ✅ mostrar estado `Discord conectado` no Aurora;
+- ✅ migrar o Companion para o Social SDK oficial com `Listening` e fallback RPC;
 - integrar **Ouvir junto** a uma sessão Aurora Connect;
 - distribuir o Companion assinado junto da versão Windows.
 

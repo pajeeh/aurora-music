@@ -2,14 +2,19 @@
 
 Ponte local que lê somente a presença pareada do Aurora e publica uma atividade Rich Presence no Discord Desktop.
 
-O transporte Rich Presence disponível publicamente mostra o rótulo do aplicativo como **Jogando Aurora Music**; título, artista, capa e progresso continuam sendo do player real. O rótulo **Ouvindo** exige uma integração privilegiada do Discord e não é configurável pelo RPC público.
+O Companion prefere o **Discord Social SDK oficial** e envia a atividade como `Listening`. Se o helper nativo ou a DLL não estiverem disponíveis, volta automaticamente ao RPC compatível, que mostra **Jogando Aurora Music**. O Discord ainda controla a apresentação final do rótulo em cada cliente.
 
 ## Preparação
 
-1. Execute `npm install` nesta pasta.
-2. No Aurora, abra o menu da conta, escolha **Discord · Tocando agora** e gere um código.
-3. Execute `npm run pair -- 12345678` substituindo pelo código exibido.
-4. Execute `npm start` com o Discord Desktop aberto.
+1. Baixe o pacote principal do Social SDK pelo Discord Developer Portal.
+2. Coloque `DiscordSocialSdk-1.10.19337.zip` em `Downloads` e execute `npm run sdk:install` nesta pasta. O checksum é validado antes da extração.
+3. Execute `npm run sdk:build` para compilar o helper nativo em Rust.
+4. Execute `npm install` nesta pasta.
+5. No Aurora, abra o menu da conta, escolha **Discord · Tocando agora** e gere um código.
+6. Execute `npm run pair -- 12345678` substituindo pelo código exibido.
+7. Execute `npm start` com o Discord Desktop aberto.
+
+O ZIP, as DLLs extraídas e os binários compilados ficam ignorados pelo Git. Para forçar o fallback durante diagnóstico, use `AURORA_DISCORD_TRANSPORT=rpc`.
 
 O aplicativo oficial **Aurora Music** usa o Application ID público `1555389940542611596` e o asset Rich Presence `aurora`. `DISCORD_APPLICATION_ID` continua disponível apenas para desenvolvimento com outro aplicativo.
 

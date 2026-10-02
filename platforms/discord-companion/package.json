@@ -3,6 +3,6 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "scripts": {"start":"node src/index.mjs","pair":"node src/index.mjs pair","test":"node --test test/*.test.mjs"},
+  "scripts": {"start":"node src/index.mjs","pair":"node src/index.mjs pair","test":"node --test test/*.test.mjs","sdk:install":"powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-social-sdk.ps1","sdk:build":"cargo build --manifest-path native-social-sdk/Cargo.toml --release"},
   "dependencies": {"discord-rpc":"^4.0.1"}
 }

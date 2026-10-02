@@ -109,8 +109,8 @@ Dados que nunca são enviados ao Discord:
 - [x] Formulário do Social SDK enviado em 1 de outubro de 2026
 - [x] Acesso instantâneo concedido pelo Discord
 - [x] SDK principal baixado pelo Developer Portal
-- [ ] Migrar o Companion para o SDK oficial
-- [ ] Solicitar ou validar a renderização como `Listening`
+- [x] Migrar o Companion para o SDK oficial
+- [x] Validar a renderização de `Listening`: o Discord ainda exibe `Jogando`
 
 ## SDK liberado
 
@@ -122,3 +122,7 @@ Dados que nunca são enviados ao Discord:
 - Arquivo local: `%USERPROFILE%\Downloads\DiscordSocialSdk-1.10.19337.zip`
 
 O pacote do SDK não deve ser versionado ou redistribuído pelo repositório. O código do Aurora deve referenciá-lo por um caminho local configurável e respeitar os termos aceitos no Developer Portal.
+
+## Resultado da validação
+
+O Companion compilado com o Social SDK `1.10.19337` iniciou, conectou e publicou a faixa real usando `ActivityTypes::Listening`. O perfil mostrou corretamente aplicativo, título, artista, capa e tempo, porém manteve o cabeçalho **Jogando**. Portanto, o tipo existe na API, mas não concede ao Aurora o tratamento visual reservado ao Spotify. A implementação conserva o SDK oficial por suporte e evolução futura, sem apresentar esse rótulo como funcionalidade disponível.
