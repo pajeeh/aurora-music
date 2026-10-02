@@ -1,0 +1,22 @@
+AURORA DISCORD COMPANION PARA WINDOWS
+=====================================
+
+1. Execute INSTALAR-AURORA.cmd.
+2. Entre no Aurora quando o navegador abrir.
+3. Abra Discord - Tocando agora e gere o codigo de 8 digitos.
+4. Volte ao instalador, pressione uma tecla e informe o codigo.
+5. Toque uma musica no Aurora com o Discord Desktop aberto.
+
+O Companion passa a iniciar com o Windows automaticamente.
+
+Se algo nao funcionar, execute DIAGNOSTICO.cmd.
+Para trocar ou renovar o pareamento, execute PAREAR-NOVAMENTE.cmd.
+Para remover o programa, execute uninstall.ps1.
+
+Site: https://pajeeh.github.io/aurora-music/
+Projeto: https://github.com/pajeeh/aurora-music
+
+Privacidade: o token de pareamento e protegido pelo cofre do Windows e nao
+faz parte deste pacote. Tokens do Google e do YouTube nao sao enviados ao
+Companion nem ao Discord.
+

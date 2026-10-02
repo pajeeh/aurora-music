@@ -118,6 +118,8 @@ function App() {
 
   const [accountMenu, setAccountMenu] = useState(false);
   const [modal, setModal] = useState<'create' | 'save' | 'connect' | 'discord' | null>(null);
+  const discordSetupRequested=useRef(new URLSearchParams(location.search).get('discord')==='setup');
+  useEffect(()=>{if(!discordSetupRequested.current||!account.identityToken)return;discordSetupRequested.current=false;setModal('discord');const url=new URL(location.href);url.searchParams.delete('discord');history.replaceState({},'',url);},[account.identityToken]);
   const [discordEnabled,setDiscordEnabled]=useState(()=>localStorage.getItem('aurora-discord-presence-v1')==='true');
   const updateDiscordEnabled=(value:boolean)=>{setDiscordEnabled(value);try{localStorage.setItem('aurora-discord-presence-v1',String(value));}catch{/* Preference remains in memory. */}};
   const [playlistName, setPlaylistName] = useState('');

@@ -12,5 +12,4 @@ Get-ChildItem -LiteralPath $source -Force | Where-Object { $_.Name -ne 'install.
 }
 if (-not $NoStartup) { Copy-Item -LiteralPath (Join-Path $destination 'start.cmd') -Destination $startup -Force }
 Write-Host "Aurora Companion instalado em $destination"
-Write-Host 'Execute pair.cmd uma vez para conectar este computador ao Aurora.'
-
+Write-Host 'Instalação concluída. Continue nesta janela para conectar o computador ao Aurora.'

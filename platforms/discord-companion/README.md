@@ -25,7 +25,7 @@ O diagnóstico termina com erro quando o Companion não conseguir funcionar e us
 
 ## Pacote para testers
 
-`npm run pack:windows` monta `artifacts/aurora-discord-companion-win-x64.zip` com Node.js, dependências, helper nativo, avisos de licença, instalador, pareamento e diagnóstico. O pacote não contém token ou configuração pessoal. Depois de extrair, a pessoa executa `install.ps1` e `pair.cmd`; não precisa ter Node.js, Rust ou o repositório instalados. Um arquivo `.sha256` é criado ao lado para conferir a integridade do download.
+`npm run pack:windows` monta um ZIP claramente identificado com Node.js, dependências, helper nativo, avisos de licença, instalação guiada, pareamento e diagnóstico. O pacote não contém token ou configuração pessoal. Depois de extrair, a pessoa executa apenas `INSTALAR-AURORA.cmd`; não precisa ter Node.js, Rust ou o repositório instalados. Um arquivo `.sha256` é criado ao lado para conferir a integridade do download.
 
 O ZIP, as DLLs extraídas e os binários compilados ficam ignorados pelo Git. Para forçar o fallback durante diagnóstico, use `AURORA_DISCORD_TRANSPORT=rpc`.
 
