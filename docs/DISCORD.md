@@ -52,14 +52,14 @@ O Companion deve guardar o token no cofre de credenciais do sistema, limitar a o
 
 Já estão implementados o serviço multiusuário, a publicação privada pelo player, os códigos descartáveis, a revogação por dispositivo, a expiração da faixa e o Companion para Windows em `platforms/discord-companion`.
 
-Para ativar a publicação real no Discord falta somente criar o aplicativo **Aurora Music** no Discord Developer Portal, cadastrar o asset `aurora` e fornecer seu Application ID público ao Companion. O pacote usa o transporte IPC do Discord Desktop e não exige um bot em servidor.
+O aplicativo **Aurora Music** foi criado no Discord Developer Portal com o Application ID público `1555389940542611596`, o asset `aurora`, ícone, descrição, termos e privacidade. O Companion já inclui esse identificador e usa o transporte IPC do Discord Desktop; não exige bot em servidor.
 
 ## Entregas
 
 ### Fase 1 — prova no Windows
 
-- criar o aplicativo `Aurora Music` no Discord Developer Portal;
-- solicitar/habilitar o Discord Social SDK e cadastrar a identidade visual;
+- ✅ criar o aplicativo `Aurora Music` no Discord Developer Portal;
+- ✅ cadastrar a identidade visual e o asset Rich Presence;
 - ✅ construir um Companion mínimo;
 - ✅ publicar faixa, artista e timestamps;
 - ✅ adicionar ligar/desligar e limpar presença ao fechar;
