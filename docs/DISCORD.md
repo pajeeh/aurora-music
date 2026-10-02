@@ -52,7 +52,7 @@ O Companion deve guardar o token no cofre de credenciais do sistema, limitar a o
 
 Já estão implementados o serviço multiusuário, a publicação privada pelo player, os códigos descartáveis, a revogação por dispositivo, a expiração da faixa e o Companion para Windows em `platforms/discord-companion`.
 
-O aplicativo **Aurora Music** foi criado no Discord Developer Portal com o Application ID público `1555389940542611596`, o asset `aurora`, ícone, descrição, termos e privacidade. O Companion já inclui esse identificador e usa o transporte IPC do Discord Desktop; não exige bot em servidor. O teste real confirmou faixa, artista, capa e tempo no perfil. O RPC público rotula a atividade como **Jogando Aurora Music**; o rótulo reservado **Ouvindo** depende de acesso privilegiado do Discord.
+O aplicativo **Aurora Music** foi criado no Discord Developer Portal com o Application ID público `1555389940542611596`, o asset `aurora`, ícone, descrição, termos e privacidade. O Companion já inclui esse identificador e usa o transporte IPC do Discord Desktop; não exige bot em servidor. O teste real confirmou faixa, artista, capa e tempo no perfil. O RPC público rotula a atividade como **Jogando Aurora Music**. A candidatura ao Social SDK foi enviada e o acesso à versão `1.10.19337` foi liberado imediatamente. As respostas, evidências, checksum e o gate de migração estão no [pacote de candidatura](DISCORD-SOCIAL-SDK-APPLICATION.md). O SDK enumera o tipo `Listening`, mas o Discord controla sua renderização; o Companion manterá `Playing` como fallback até a validação real.
 
 ## Entregas
 
@@ -63,7 +63,8 @@ O aplicativo **Aurora Music** foi criado no Discord Developer Portal com o Appli
 - ✅ construir um Companion mínimo;
 - ✅ publicar faixa, artista e timestamps;
 - ✅ adicionar ligar/desligar e limpar presença ao fechar;
-- testar com Discord aberto, fechado, reconectando e com faixa pausada.
+- testar com Discord aberto, fechado, reconectando e com faixa pausada;
+- ✅ preparar a candidatura ao Discord Social SDK.
 
 ### Fase 2 — integração de produto
 

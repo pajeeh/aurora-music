@@ -102,7 +102,7 @@ Para apresentações presenciais, use o [roteiro de demonstração do evento](EV
 
 ## Próximas faixas
 
-- companion oficial para presença musical no Discord, com faixa, capa, progresso e Aurora Connect;
+- migrar o Companion funcional para o Discord Social SDK oficial e validar o tipo de atividade `Listening`;
 - beta nas lojas do Windows e Android após identidade, domínio e assinaturas.
 
 O plano completo, incluindo **Aurora Match**, descoberta musical, comunidade, segurança e aplicativos, está no [roadmap do Aurora](ROADMAP.md). A estratégia para [presença em redes sociais](docs/SOCIAL_INTEGRATIONS.md) cobre Instagram, WhatsApp, Facebook e o perfil musical vivo. A arquitetura de [identidade de artistas, descoberta e presença](docs/ARTIST_DISCOVERY_AND_PRESENCE.md) separa seguir no Aurora, inscrição no YouTube e exibição no Discord.
