@@ -23,6 +23,10 @@ O Companion prefere o **Discord Social SDK oficial** e envia a atividade como `L
 
 O diagnóstico termina com erro quando o Companion não conseguir funcionar e usa avisos quando puder continuar pelo RPC compatível. O log da inicialização automática fica somente no computador, em `%LOCALAPPDATA%\Aurora\Discord Companion\companion.log`, e é limitado automaticamente para não crescer sem controle.
 
+## Pacote para testers
+
+`npm run pack:windows` monta `artifacts/aurora-discord-companion-win-x64.zip` com Node.js, dependências, helper nativo, avisos de licença, instalador, pareamento e diagnóstico. O pacote não contém token ou configuração pessoal. Depois de extrair, a pessoa executa `install.ps1` e `pair.cmd`; não precisa ter Node.js, Rust ou o repositório instalados. Um arquivo `.sha256` é criado ao lado para conferir a integridade do download.
+
 O ZIP, as DLLs extraídas e os binários compilados ficam ignorados pelo Git. Para forçar o fallback durante diagnóstico, use `AURORA_DISCORD_TRANSPORT=rpc`.
 
 O aplicativo oficial **Aurora Music** usa o Application ID público `1555389940542611596` e o asset Rich Presence `aurora`. `DISCORD_APPLICATION_ID` continua disponível apenas para desenvolvimento com outro aplicativo.

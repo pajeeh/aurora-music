@@ -1,5 +1,7 @@
 import fs from 'node:fs/promises';
+import path from 'node:path';
 import process from 'node:process';
+import {fileURLToPath} from 'node:url';
 import {unprotectSecret} from './secrets.mjs';
 import {configPath,endpoint,socialSdkDll,socialSdkExe} from './settings.mjs';
 
@@ -30,7 +32,7 @@ export async function diagnose(){
   return results;
 }
 
-if(import.meta.url===`file:///${process.argv[1]?.replaceAll('\\','/')}`){
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   console.log('\nAurora Discord Companion · diagnóstico\n');
   const results=await diagnose();
   for(const item of results)console.log(`${item.level==='ok'?'✓':item.level==='warn'?'!':'✕'} ${item.label}: ${item.detail}`);
