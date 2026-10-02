@@ -52,7 +52,7 @@ O Companion deve guardar o token no cofre de credenciais do sistema, limitar a o
 
 Já estão implementados o serviço multiusuário, a publicação privada pelo player, os códigos descartáveis, a revogação por dispositivo, a expiração da faixa e o Companion para Windows em `platforms/discord-companion`.
 
-O aplicativo **Aurora Music** foi criado no Discord Developer Portal com o Application ID público `1555389940542611596`, o asset `aurora`, ícone, descrição, termos e privacidade. O Companion já inclui esse identificador e usa o transporte IPC do Discord Desktop; não exige bot em servidor.
+O aplicativo **Aurora Music** foi criado no Discord Developer Portal com o Application ID público `1555389940542611596`, o asset `aurora`, ícone, descrição, termos e privacidade. O Companion já inclui esse identificador e usa o transporte IPC do Discord Desktop; não exige bot em servidor. O teste real confirmou faixa, artista, capa e tempo no perfil. O RPC público rotula a atividade como **Jogando Aurora Music**; o rótulo reservado **Ouvindo** depende de acesso privilegiado do Discord.
 
 ## Entregas
 

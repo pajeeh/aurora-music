@@ -1,6 +1,8 @@
 # Aurora Discord Companion
 
-Ponte local que lê somente a presença pareada do Aurora e publica uma atividade `Listening` no Discord Desktop.
+Ponte local que lê somente a presença pareada do Aurora e publica uma atividade Rich Presence no Discord Desktop.
+
+O transporte Rich Presence disponível publicamente mostra o rótulo do aplicativo como **Jogando Aurora Music**; título, artista, capa e progresso continuam sendo do player real. O rótulo **Ouvindo** exige uma integração privilegiada do Discord e não é configurável pelo RPC público.
 
 ## Preparação
 
