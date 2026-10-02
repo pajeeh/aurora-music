@@ -1,0 +1,8 @@
+{
+  "name": "aurora-discord-companion",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {"start":"node src/index.mjs","pair":"node src/index.mjs pair","test":"node --test test/*.test.mjs"},
+  "dependencies": {"discord-rpc":"^4.0.1"}
+}

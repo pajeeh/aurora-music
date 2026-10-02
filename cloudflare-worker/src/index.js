@@ -4,9 +4,10 @@ import { normalizePayload, renderSvg } from '../../now-playing-service/core.js';
 import { applyLibraryAction, publicLibrary } from './library-state.js';
 import { applySocialAction, publicSocialProfile, socialMatch, socialPublic } from './social-state.js';
 import { boundedForward } from './request-guard.js';
+import { claimPairing, createPairing, emptyPresenceState, publicPresenceSettings, publishPresence, readDevicePresence, revokeDevice, touchDevice } from './presence-state.js';
 
 const json=(value,status=200,headers={})=>new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers}});
-const cors=origin=>({'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Headers':'Authorization, Content-Type','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Vary':'Origin'});
+const cors=origin=>({'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Headers':'Authorization, Content-Type','Access-Control-Allow-Methods':'GET, POST, DELETE, OPTIONS','Vary':'Origin'});
 const code=()=>crypto.getRandomValues(new Uint8Array(9)).toBase64({alphabet:'base64url',omitPadding:true});
 const authCache=new Map();
 const tokenKey=async token=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token))),byte=>byte.toString(16).padStart(2,'0')).join('');
@@ -51,6 +52,21 @@ export class AuroraState extends DurableObject {
       if(request.method!=='POST')return json({error:'Método não permitido.'},405);
       try{const next=applySocialAction(current,viewer,await request.json());await this.ctx.storage.put('social',next);return json(socialPublic(next,viewer));}
       catch(error){return json({error:error.status?error.message:'Falha no Aurora Social.'},error.status??500);}
+    }
+    if(url.pathname==='/internal/presence'){
+      let state=await this.ctx.storage.get('presence')??emptyPresenceState();const viewer=request.headers.get('X-Aurora-Viewer');const deviceToken=request.headers.get('X-Aurora-Device');
+      try{
+        if(deviceToken&&request.method==='GET'){const hash=await tokenKey(deviceToken);const result=readDevicePresence(state,hash);state=touchDevice(state,hash);await this.ctx.storage.put('presence',state);return json(result);}
+        const body=request.method==='POST'?await request.json():{};
+        if(!viewer&&body.action==='claim'){if(!/^\d{8}$/.test(body.code??''))return json({error:'Código inválido.'},400);const token=code()+code();const hash=await tokenKey(token);state=claimPairing(state,body.code,hash,code(),body.deviceName);await this.ctx.storage.put('presence',state);return json({token},201);}
+        if(!viewer)return json({error:'unauthorized'},401);
+        if(request.method==='GET')return json(publicPresenceSettings(state,viewer));
+        if(request.method==='DELETE'){state=publishPresence(state,viewer,{action:'disable'});await this.ctx.storage.put('presence',state);return json(publicPresenceSettings(state,viewer));}
+        if(request.method!=='POST')return json({error:'Método não permitido.'},405);
+        if(body.action==='pair'){let pairCode='';do{pairCode=String(crypto.getRandomValues(new Uint32Array(1))[0]%100000000).padStart(8,'0');}while(state.pairings[pairCode]);state=createPairing(state,viewer,pairCode);await this.ctx.storage.put('presence',state);return json({code:pairCode,expiresAt:new Date(Date.now()+300000).toISOString()},201);}
+        if(body.action==='revoke'){state=revokeDevice(state,viewer,body.deviceId);await this.ctx.storage.put('presence',state);return json(publicPresenceSettings(state,viewer));}
+        state=publishPresence(state,viewer,body);await this.ctx.storage.put('presence',state);return json(publicPresenceSettings(state,viewer));
+      }catch(error){return json({error:error.status?error.message:'Falha na presença do Discord.'},error.status??500);}
     }
     const rooms=await this.rooms();let body={};if(request.method==='POST')body=await request.json();
     const parts=url.pathname.split('/').filter(Boolean);const roomCode=parts[1];const action=parts[2];
@@ -103,6 +119,16 @@ export default {async fetch(request,env){
   if(url.pathname==='/api/social/match'){
     if(request.method!=='GET')return json({error:'Método não permitido.'},405,headers);const handle=url.searchParams.get('handle')??'';if(!/^[a-z0-9_]{3,24}$/.test(handle))return json({error:'Perfil inválido.'},400,headers);const identity=await googleIdentity(request,env);if(!identity)return json({error:'unauthorized'},401,headers);
     const social=env.AURORA.getByName('social:global');const forwarded=new Request(new URL('/internal/social',url),request);forwarded.headers.set('X-Aurora-Viewer',identity.sub);forwarded.headers.set('X-Aurora-Match-Handle',handle);const response=await social.fetch(forwarded);const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
+  }
+  if(url.pathname==='/api/presence'||url.pathname==='/api/presence/pair/claim'||url.pathname==='/api/presence/device'){
+    const presence=env.AURORA.getByName('presence:global');
+    if(url.pathname==='/api/presence/device'){
+      if(request.method!=='GET')return json({error:'Método não permitido.'},405,headers);const token=request.headers.get('Authorization')?.match(/^Bearer (.+)$/)?.[1];if(!token)return json({error:'unauthorized'},401,headers);const forwarded=new Request(new URL('/internal/presence',url),{method:'GET',headers:{'X-Aurora-Device':token}});const response=await presence.fetch(forwarded);const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
+    }
+    if(url.pathname==='/api/presence/pair/claim'){
+      if(request.method!=='POST')return json({error:'Método não permitido.'},405,headers);const forwarded=await boundedForward(request,new URL('/internal/presence',url));if(!forwarded)return json({error:'Solicitação muito grande.'},413,headers);const body=await forwarded.json();const response=await presence.fetch(new Request(new URL('/internal/presence',url),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,action:'claim'})}));const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
+    }
+    if(!['GET','POST','DELETE'].includes(request.method))return json({error:'Método não permitido.'},405,headers);const identity=await googleIdentity(request,env);if(!identity)return json({error:'unauthorized'},401,headers);const forwarded=await boundedForward(request,new URL('/internal/presence',url));if(!forwarded)return json({error:'Solicitação muito grande.'},413,headers);forwarded.headers.set('X-Aurora-Viewer',identity.sub);const response=await presence.fetch(forwarded);const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
   }
   const match=url.pathname.match(/^\/api\/connect\/rooms(?:\/([\w-]{12})(?:\/(join|actions))?)?$/);
   if(!match)return json({error:'Não encontrado.'},404,headers);

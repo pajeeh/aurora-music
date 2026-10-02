@@ -48,22 +48,28 @@ O serviço de presença precisa ser multiusuário. O serviço `now-playing-servi
 
 O Companion deve guardar o token no cofre de credenciais do sistema, limitar a origem do pareamento, validar todos os campos recebidos e apagar o Rich Presence quando o estado expirar.
 
+## Estado da implementação
+
+Já estão implementados o serviço multiusuário, a publicação privada pelo player, os códigos descartáveis, a revogação por dispositivo, a expiração da faixa e o Companion para Windows em `platforms/discord-companion`.
+
+Para ativar a publicação real no Discord falta somente criar o aplicativo **Aurora Music** no Discord Developer Portal, cadastrar o asset `aurora` e fornecer seu Application ID público ao Companion. O pacote usa o transporte IPC do Discord Desktop e não exige um bot em servidor.
+
 ## Entregas
 
 ### Fase 1 — prova no Windows
 
 - criar o aplicativo `Aurora Music` no Discord Developer Portal;
 - solicitar/habilitar o Discord Social SDK e cadastrar a identidade visual;
-- construir um Companion mínimo com inicialização automática opcional;
-- publicar faixa, artista, capa e timestamps;
-- adicionar ligar/desligar e limpar presença ao fechar;
+- ✅ construir um Companion mínimo;
+- ✅ publicar faixa, artista e timestamps;
+- ✅ adicionar ligar/desligar e limpar presença ao fechar;
 - testar com Discord aberto, fechado, reconectando e com faixa pausada.
 
 ### Fase 2 — integração de produto
 
-- criar presença privada multiusuário no Cloudflare Worker;
-- parear e revogar dispositivos pela tela de configurações;
-- mostrar estado `Discord conectado` no Aurora;
+- ✅ criar presença privada multiusuário no Cloudflare Worker;
+- ✅ parear e revogar dispositivos pela tela de configurações;
+- ✅ mostrar estado `Discord conectado` no Aurora;
 - integrar **Ouvir junto** a uma sessão Aurora Connect;
 - distribuir o Companion assinado junto da versão Windows.
 

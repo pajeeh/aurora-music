@@ -60,6 +60,8 @@ import { importAndReadLibrary, likeSyncReady, readCloudLibrary, writeCloudCollec
 import { SocialStage } from './SocialStage';
 import { GoogleSignInButton } from './GoogleSignInButton';
 import { activateUpdate, isStandalone, registerAuroraServiceWorker, watchConnectivity } from './pwa';
+import { DiscordPresenceModal } from './DiscordPresenceModal';
+import { discordPresenceReady, publishDiscordPresence } from './discord-presence';
 
 type View = 'home' | 'social' | 'library' | 'search' | 'liked' | 'collection' | 'youtube';
 type Filter = 'Tudo' | 'Playlists' | 'Curtidas' | 'Recentes';
@@ -115,7 +117,9 @@ function App() {
   const searchSequence = useRef(0);
 
   const [accountMenu, setAccountMenu] = useState(false);
-  const [modal, setModal] = useState<'create' | 'save' | 'connect' | null>(null);
+  const [modal, setModal] = useState<'create' | 'save' | 'connect' | 'discord' | null>(null);
+  const [discordEnabled,setDiscordEnabled]=useState(()=>localStorage.getItem('aurora-discord-presence-v1')==='true');
+  const updateDiscordEnabled=(value:boolean)=>{setDiscordEnabled(value);try{localStorage.setItem('aurora-discord-presence-v1',String(value));}catch{/* Preference remains in memory. */}};
   const [playlistName, setPlaylistName] = useState('');
   const [saveTrack, setSaveTrack] = useState<Track | null>(null);
   const [deviceName, setDeviceName] = useState('Meu dispositivo');
@@ -272,6 +276,13 @@ function App() {
       controller.abort();
     };
   }, [displayedCurrent, player.playing, account.identityToken, group.isPlayer, !!group.state]);
+
+  useEffect(()=>{
+    if(!discordEnabled||!account.identityToken||!discordPresenceReady||(group.state&&!group.isPlayer))return;
+    const controller=new AbortController();let busy=false;
+    const publish=async()=>{if(busy)return;busy=true;try{const response=await publishDiscordPresence(account.identityToken!,displayedCurrent,player.playing,player.position,player.duration,controller.signal);if(!response.ok&&response.status===401)updateDiscordEnabled(false);}catch{/* Presence is optional and must not interrupt playback. */}finally{busy=false;}};
+    void publish();const timer=setInterval(()=>void publish(),15000);return()=>{clearInterval(timer);controller.abort();};
+  },[discordEnabled,account.identityToken,displayedCurrent,player.playing,Math.floor(player.position/15),player.duration,group.isPlayer,!!group.state]);
 
   const commandKey = group.state
     ? `${group.state.playerId}:${group.state.playback.command}`
@@ -815,6 +826,14 @@ function App() {
             )}
             {accountMenu && (
               <div className="account-menu">
+                <button
+                  onClick={() => {
+                    setAccountMenu(false);
+                    setModal('discord');
+                  }}
+                >
+                  Discord · Tocando agora
+                </button>
                 <button
                   onClick={() => {
                     setAccountMenu(false);
@@ -1605,6 +1624,11 @@ function App() {
               </button>
             </>
           )}
+        </Modal>
+      )}
+      {modal==='discord'&&account.identityToken&&(
+        <Modal title="Presença no Discord" close={()=>setModal(null)}>
+          <DiscordPresenceModal token={account.identityToken} enabled={discordEnabled} onEnabled={updateDiscordEnabled} notify={setNotice}/>
         </Modal>
       )}
     </div>
