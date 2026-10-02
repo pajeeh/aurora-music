@@ -9,7 +9,7 @@ type MiniMessage={type:'state';value:MiniPlayerState}|{type:'command';command:'t
 
 export function MiniPlayer(){
  const [state,setState]=useState<MiniPlayerState|null>(null);
- useEffect(()=>{document.title='Aurora Mini Player';const channel=new BroadcastChannel('aurora-mini-player-v1');channel.onmessage=event=>{const message=event.data as MiniMessage;if(message?.type==='state')setState(message.value);};channel.postMessage({type:'request-state'} satisfies MiniMessage);return()=>channel.close();},[]);
+ useEffect(()=>{if(new URLSearchParams(location.search).get('mini')==='1')document.title='Aurora Mini Player';const channel=new BroadcastChannel('aurora-mini-player-v1');channel.onmessage=event=>{const message=event.data as MiniMessage;if(message?.type==='state')setState(message.value);};channel.postMessage({type:'request-state'} satisfies MiniMessage);return()=>channel.close();},[]);
  const command=(value:MiniMessage)=>{const channel=new BroadcastChannel('aurora-mini-player-v1');channel.postMessage(value);channel.close();};
  if(!state)return <main className="mini-player waiting"><img src="./aurora-icon.svg" alt=""/><div><b>Aurora Mini Player</b><small>Abra o Aurora para controlar a reprodução.</small></div></main>;
  const progress=state.duration?Math.min(100,state.position/state.duration*100):0;
