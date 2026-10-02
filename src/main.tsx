@@ -1463,7 +1463,7 @@ function App() {
         repeat={repeat}
         setRepeat={setRepeat}
         grouped={!!group.pair}
-        openMini={()=>void openMiniPlayer()}
+        openMini={()=>void openMiniPlayer(container=>{const root=createRoot(container);root.render(<MiniPlayer/>);return()=>root.unmount();})}
       />
 
       {modal === 'create' && (
