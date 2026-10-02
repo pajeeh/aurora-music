@@ -41,6 +41,7 @@ export const Download = aurora(Glyphs.Download);
 export const Upload = aurora(Glyphs.Upload);
 export const Folder = aurora(Glyphs.Folder);
 export const Monitor = aurora(Glyphs.Monitor);
+export const PictureInPicture = aurora(Glyphs.PictureInPicture2);
 export const Volume2 = aurora(Glyphs.Volume2);
 export const VolumeX = aurora(Glyphs.VolumeX);
 export const NowPlaying = aurora(Glyphs.AudioLines);

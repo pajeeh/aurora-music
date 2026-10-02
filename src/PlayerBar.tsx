@@ -3,6 +3,7 @@ import {
   Heart,
   ListMusic,
   Monitor,
+  PictureInPicture,
   Pause,
   Play,
   Repeat,
@@ -41,6 +42,7 @@ export function PlayerBar({
   repeat,
   setRepeat,
   grouped,
+  openMini,
 }: {
   track: Track;
   liked: boolean;
@@ -63,6 +65,7 @@ export function PlayerBar({
   repeat: RepeatMode;
   setRepeat: (value: RepeatMode) => void;
   grouped: boolean;
+  openMini: () => void;
 }) {
   const [lastVolume, setLastVolume] = useState(70);
   const RepeatIcon = repeat === 'one' ? Repeat1 : Repeat;
@@ -148,6 +151,9 @@ export function PlayerBar({
       </div>
 
       <div className="volume">
+        <button aria-label="Abrir Mini Player" title="Mini Player" onClick={openMini}>
+          <PictureInPicture />
+        </button>
         <button
           aria-label="Mostrar fila"
           aria-pressed={panel === 'queue'}

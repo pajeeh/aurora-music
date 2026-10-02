@@ -1,4 +1,4 @@
-const CACHE='aurora-shell-v9';
+const CACHE='aurora-shell-v10';
 const APP_SHELL=['./','./offline.html','./manifest.webmanifest','./aurora-icon.svg','./aurora-icon-192.png','./aurora-icon-512.png','./aurora-maskable-512.png'];
 
 self.addEventListener('install',event=>{

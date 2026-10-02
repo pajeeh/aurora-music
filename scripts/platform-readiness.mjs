@@ -15,6 +15,7 @@ assert.ok(manifest.icons.some(icon => icon.sizes === '512x512' && icon.purpose.i
 assert.ok(manifest.icons.some(icon => icon.sizes === '512x512' && icon.purpose.includes('maskable')));
 assert.ok(manifest.screenshots.some(item => item.form_factor === 'narrow'));
 assert.ok(manifest.screenshots.some(item => item.form_factor === 'wide'));
+assert.ok(manifest.shortcuts.some(item => item.url.includes('mini=1')), 'Atalho do Mini Player ausente.');
 for (const item of [...manifest.icons, ...manifest.screenshots]) {
   assert.ok(existsSync(`public/${item.src}`), `Arquivo ausente no manifesto: ${item.src}`);
 }
