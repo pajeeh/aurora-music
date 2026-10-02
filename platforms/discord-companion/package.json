@@ -1,7 +1,7 @@
 {
   "name": "aurora-discord-companion",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "scripts": {"start":"node src/index.mjs","pair":"node src/index.mjs pair","doctor":"node src/doctor.mjs","test":"node --test test/*.test.mjs","sdk:install":"powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-social-sdk.ps1","sdk:build":"cargo build --manifest-path native-social-sdk/Cargo.toml --release","install:windows":"powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-windows.ps1","startup:install":"powershell -NoProfile -ExecutionPolicy Bypass -File scripts/startup.ps1 install","startup:remove":"powershell -NoProfile -ExecutionPolicy Bypass -File scripts/startup.ps1 remove","pack:windows":"powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-windows-package.ps1"},
   "dependencies": {"discord-rpc":"^4.0.1"}

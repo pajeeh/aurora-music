@@ -23,6 +23,8 @@ O Companion prefere o **Discord Social SDK oficial** e envia a atividade como `L
 
 O diagnóstico termina com erro quando o Companion não conseguir funcionar e usa avisos quando puder continuar pelo RPC compatível. O log da inicialização automática fica somente no computador, em `%LOCALAPPDATA%\Aurora\Discord Companion\companion.log`, e é limitado automaticamente para não crescer sem controle.
 
+O processo registra um heartbeat local usado pelo diagnóstico e o lançador reinicia o Companion após uma interrupção inesperada. Assim, uma falha temporária não exige reiniciar o Windows.
+
 ## Pacote para testers
 
 `npm run pack:windows` monta um ZIP claramente identificado com Node.js, dependências, helper nativo, avisos de licença, instalação guiada, pareamento e diagnóstico. O pacote não contém token ou configuração pessoal. Depois de extrair, a pessoa executa apenas `INSTALAR-AURORA.cmd`; não precisa ter Node.js, Rust ou o repositório instalados. Um arquivo `.sha256` é criado ao lado para conferir a integridade do download.
