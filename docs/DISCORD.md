@@ -22,6 +22,8 @@ O card proposto no Discord terá:
 - botão **Abrir no Aurora**;
 - botão **Ouvir junto** quando houver uma sessão Aurora Connect compartilhável.
 
+A identidade exibida no Discord vem do modelo de artista do Aurora, e não diretamente do nome do canal que publicou o vídeo. A arquitetura compartilhada está em [Identidade musical, descoberta e presença](ARTIST_DISCOVERY_AND_PRESENCE.md).
+
 ## Arquitetura
 
 ```text

@@ -36,6 +36,10 @@ Recurso de destaque para comparar duas identidades musicais e criar uma experiê
 
 ## Descoberta musical
 
+- identidade de artista separada de canal oficial, Topic, gravadora e reuploads;
+- seguir artista dentro do Aurora sem criar inscrição externa;
+- seletor transparente de canal antes de abrir ou inscrever no YouTube;
+- prateleira móvel de artistas com justificativa e controle “Não recomendar”;
 - rádio baseada em faixa, artista ou playlist;
 - mixes diários atualizados pelo comportamento do usuário;
 - recomendações com justificativas simples;
@@ -65,7 +69,7 @@ Recurso de destaque para comparar duas identidades musicais e criar uma experiê
 - [x] base PWA compartilhada para Windows e Android;
 - Android via Trusted Web Activity, pendente de domínio próprio e assinatura;
 - Windows via pacote PWA/MSIX, pendente de identidade no Partner Center;
-- Aurora Companion para Discord Rich Presence;
+- Aurora Companion para Discord Rich Presence consumindo a mesma presença musical e identidade de artista;
 - extensão para navegador e VS Code;
 - links universais para músicas, perfis e playlists;
 - preparação futura para macOS e Linux.
