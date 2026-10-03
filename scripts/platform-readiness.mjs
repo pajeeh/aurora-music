@@ -37,3 +37,14 @@ if (existsSync('platforms/android/twa-manifest.json')) {
 console.log('PWA base: pronta para instalação em Windows e Android.');
 console.log('Windows Store: requer identidade reservada no Partner Center para gerar o MSIX.');
 console.log('Android TWA: requer domínio próprio, Digital Asset Links e chave de assinatura.');
+
+if (existsSync('src-tauri/tauri.conf.json')) {
+  const desktop = JSON.parse(readFileSync('src-tauri/tauri.conf.json', 'utf8'));
+  assert.equal(desktop.identifier, 'com.pajeeh.aurora');
+  assert.equal(desktop.productName, 'Aurora Music');
+  assert.ok(desktop.app.windows.some(window => window.label === 'main'));
+  assert.ok(desktop.bundle.targets.includes('nsis'));
+  assert.ok(desktop.bundle.icon.every(icon => existsSync(`src-tauri/${icon}`)));
+  assert.ok(existsSync('src-tauri/src/main.rs'));
+  console.log('Windows nativo: configuração Tauri e instalador NSIS validados.');
+}

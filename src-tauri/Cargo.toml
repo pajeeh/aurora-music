@@ -1,0 +1,19 @@
+[package]
+name = "aurora-music-desktop"
+version = "0.2.0-beta.14"
+description = "Aurora Music para Windows"
+authors = ["Luis Santos"]
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2.5", features = [] }
+
+[dependencies]
+tauri = { version = "2.12", features = ["tray-icon", "image-png", "image-ico"] }
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

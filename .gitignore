@@ -13,6 +13,9 @@ artifacts/
 connect-service/data/
 **/.wrangler/
 platforms/**/build/
+src-tauri/target/
+src-tauri/gen/
+platforms/windows/icons/
 platforms/**/.gradle/
 platforms/**/*.aab
 platforms/**/*.apk
