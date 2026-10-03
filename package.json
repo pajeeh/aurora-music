@@ -2,7 +2,7 @@
   "name": "aurora-music",
   "private": true,
   "description": "Player musical pessoal com experiência própria e reprodução oficial pelo YouTube.",
-  "version": "0.2.0-beta.14",
+  "version": "0.2.0-beta.15",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,6 +15,7 @@
     "store:assets": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/create-microsoft-store-assets.ps1"
   },
   "dependencies": {
+    "@tauri-apps/api": "^2.12.1",
     "@vitejs/plugin-react": "latest",
     "lucide-react": "latest",
     "react": "latest",

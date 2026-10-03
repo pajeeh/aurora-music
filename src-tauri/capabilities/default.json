@@ -3,5 +3,6 @@
   "identifier": "default",
   "description": "Permissões mínimas da janela principal do Aurora.",
   "windows": ["main"],
+  "remote": { "urls": ["https://pajeeh.github.io/aurora-music/*"] },
   "permissions": ["core:default"]
 }
