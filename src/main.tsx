@@ -64,6 +64,7 @@ import { DiscordPresenceModal } from './DiscordPresenceModal';
 import { discordPresenceReady, publishDiscordPresence } from './discord-presence';
 import {MiniPlayer,type MiniPlayerState} from './MiniPlayer';
 import {openMiniPlayer} from './mini-window';
+import {DesktopYouTubeLogin} from './DesktopYouTubeLogin';
 
 type View = 'home' | 'social' | 'library' | 'search' | 'liked' | 'collection' | 'youtube';
 type Filter = 'Tudo' | 'Playlists' | 'Curtidas' | 'Recentes';
@@ -1695,10 +1696,11 @@ class AppErrorBoundary extends React.Component<
 }
 
 const miniMode=new URLSearchParams(location.search).get('mini')==='1';
+const desktopYouTubeMode=new URLSearchParams(location.search).get('desktop-youtube')==='1';
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AppErrorBoundary>
-      {miniMode?<MiniPlayer/>:<App />}
+      {desktopYouTubeMode?<DesktopYouTubeLogin/>:miniMode?<MiniPlayer/>:<App />}
     </AppErrorBoundary>
   </React.StrictMode>
 );

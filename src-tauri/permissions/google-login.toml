@@ -2,3 +2,8 @@
 identifier = "allow-start-google-login"
 description = "Permite que a janela oficial do Aurora inicie o login Google no navegador padrão."
 commands.allow = ["start_google_login"]
+
+[[permission]]
+identifier = "allow-start-youtube-login"
+description = "Permite que a janela oficial do Aurora autorize o YouTube no navegador padrão."
+commands.allow = ["start_youtube_login"]

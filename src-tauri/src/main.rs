@@ -54,6 +54,36 @@ fn receive_credential(mut stream: TcpStream, nonce: &str) -> Option<String> {
     Some(credential)
 }
 
+fn receive_youtube_grant(mut stream: TcpStream, nonce: &str) -> Option<serde_json::Value> {
+    let _ = stream.set_read_timeout(Some(Duration::from_secs(5)));
+    let mut buffer = vec![0_u8; 32 * 1024];
+    let size = stream.read(&mut buffer).ok()?;
+    let request = String::from_utf8_lossy(&buffer[..size]);
+    if request.starts_with("OPTIONS ") {
+        response(&mut stream, "204 No Content", "");
+        return None;
+    }
+    if !request.starts_with("POST /aurora-youtube ")
+        || !request.contains(&format!("Origin: {AURORA_ORIGIN}\r\n"))
+    {
+        response(&mut stream, "403 Forbidden", "Origem recusada.");
+        return None;
+    }
+    let value: serde_json::Value = serde_json::from_str(request.split("\r\n\r\n").nth(1)?).ok()?;
+    if value.get("nonce")?.as_str()? != nonce {
+        response(&mut stream, "403 Forbidden", "Código recusado.");
+        return None;
+    }
+    let token = value.get("token")?.as_str()?;
+    let expires_at = value.get("expiresAt")?.as_f64()?;
+    if token.len() > 16_384 || token.len() < 20 || !expires_at.is_finite() {
+        response(&mut stream, "400 Bad Request", "Autorização inválida.");
+        return None;
+    }
+    response(&mut stream, "200 OK", "YouTube conectado. Você já pode voltar ao Aurora.");
+    Some(serde_json::json!({"token": token, "expiresAt": expires_at}))
+}
+
 #[tauri::command]
 fn start_google_login(window: tauri::WebviewWindow) -> Result<(), String> {
     if LOGIN_ACTIVE.swap(true, Ordering::SeqCst) {
@@ -95,6 +125,45 @@ fn start_google_login(window: tauri::WebviewWindow) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+fn start_youtube_login(window: tauri::WebviewWindow) -> Result<(), String> {
+    if LOGIN_ACTIVE.swap(true, Ordering::SeqCst) {
+        return Err("Uma janela de autorização já está aberta.".into());
+    }
+    let listener = TcpListener::bind("127.0.0.1:0").map_err(|error| {
+        LOGIN_ACTIVE.store(false, Ordering::SeqCst);
+        format!("Não foi possível preparar a autorização: {error}")
+    })?;
+    listener.set_nonblocking(true).map_err(|error| {
+        LOGIN_ACTIVE.store(false, Ordering::SeqCst);
+        error.to_string()
+    })?;
+    let port = listener.local_addr().map_err(|error| error.to_string())?.port();
+    let nonce = uuid::Uuid::new_v4().to_string();
+    let url = format!("https://pajeeh.github.io/aurora-music/?desktop-youtube=1&port={port}&nonce={nonce}");
+    if let Err(error) = open::that(&url) {
+        LOGIN_ACTIVE.store(false, Ordering::SeqCst);
+        return Err(format!("Não foi possível abrir o navegador: {error}"));
+    }
+    std::thread::spawn(move || {
+        let deadline = Instant::now() + Duration::from_secs(180);
+        while Instant::now() < deadline {
+            match listener.accept() {
+                Ok((stream, _)) => {
+                    if let Some(grant) = receive_youtube_grant(stream, &nonce) {
+                        let _ = window.eval(&format!("window.dispatchEvent(new CustomEvent('aurora-youtube-grant',{{detail:{grant}}}))"));
+                        break;
+                    }
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => std::thread::sleep(Duration::from_millis(100)),
+                Err(_) => break,
+            }
+        }
+        LOGIN_ACTIVE.store(false, Ordering::SeqCst);
+    });
+    Ok(())
+}
+
 fn show_main(app: &tauri::AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
         let _ = window.unminimize();
@@ -105,7 +174,7 @@ fn show_main(app: &tauri::AppHandle) {
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![start_google_login])
+        .invoke_handler(tauri::generate_handler![start_google_login, start_youtube_login])
         .setup(|app| {
             let open = MenuItem::with_id(app, "open", "Abrir Aurora", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Sair do Aurora", true, None::<&str>)?;
