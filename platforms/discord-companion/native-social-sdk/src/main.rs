@@ -62,8 +62,8 @@ unsafe extern "C" {
 #[derive(Deserialize)]
 #[serde(tag = "command", rename_all = "lowercase")]
 enum Command {
-    Set { title: String, artist: String, image: Option<String>, start: Option<u64>, end: Option<u64>, url: Option<String> },
-    Clear,
+    Set { id: u64, title: String, artist: String, image: Option<String>, start: Option<u64>, end: Option<u64>, url: Option<String> },
+    Clear { id: u64 },
     Exit,
 }
 
@@ -71,13 +71,18 @@ fn discord_string(value: &str) -> DiscordString {
     DiscordString { ptr: value.as_ptr() as *mut u8, size: value.len() }
 }
 
-unsafe extern "C" fn updated(result: *mut DiscordClientResult, _user_data: *mut c_void) {
+unsafe extern "C" fn updated(result: *mut DiscordClientResult, user_data: *mut c_void) {
     let successful = unsafe { Discord_ClientResult_Successful(result) };
-    println!("{{\"event\":\"updated\",\"successful\":{successful}}}");
+    let id = unsafe { *(user_data as *mut u64) };
+    println!("{{\"event\":\"updated\",\"id\":{id},\"successful\":{successful}}}");
     unsafe { Discord_ClientResult_Drop(result) };
 }
 
-unsafe fn set_presence(client: *mut DiscordClient, title: &str, artist: &str, image: Option<&str>, start: Option<u64>, end: Option<u64>, url: Option<&str>) {
+unsafe extern "C" fn free_request(user_data: *mut c_void) {
+    if !user_data.is_null() { drop(unsafe { Box::from_raw(user_data as *mut u64) }); }
+}
+
+unsafe fn set_presence(client: *mut DiscordClient, id: u64, title: &str, artist: &str, image: Option<&str>, start: Option<u64>, end: Option<u64>, url: Option<&str>) {
     let mut activity = DiscordActivity { opaque: ptr::null_mut() };
     unsafe { Discord_Activity_Init(&mut activity) };
     unsafe { Discord_Activity_SetName(&mut activity, discord_string("Aurora Music")) };
@@ -112,7 +117,8 @@ unsafe fn set_presence(client: *mut DiscordClient, title: &str, artist: &str, im
         unsafe { Discord_Activity_AddButton(&mut activity, &button) };
     }
 
-    unsafe { Discord_Client_UpdateRichPresence(client, &mut activity, Some(updated), None, ptr::null_mut()) };
+    let request = Box::into_raw(Box::new(id)) as *mut c_void;
+    unsafe { Discord_Client_UpdateRichPresence(client, &mut activity, Some(updated), Some(free_request), request) };
     if !button.opaque.is_null() { unsafe { Discord_ActivityButton_Drop(&mut button) }; }
     if !timestamps.opaque.is_null() { unsafe { Discord_ActivityTimestamps_Drop(&mut timestamps) }; }
     unsafe { Discord_ActivityAssets_Drop(&mut assets) };
@@ -141,8 +147,8 @@ fn main() {
     while running {
         while let Ok(command) = receiver.try_recv() {
             match command {
-                Command::Set { title, artist, image, start, end, url } => unsafe { set_presence(&mut client, &title, &artist, image.as_deref(), start, end, url.as_deref()) },
-                Command::Clear => unsafe { Discord_Client_ClearRichPresence(&mut client) },
+                Command::Set { id, title, artist, image, start, end, url } => unsafe { set_presence(&mut client, id, &title, &artist, image.as_deref(), start, end, url.as_deref()) },
+                Command::Clear { id } => { unsafe { Discord_Client_ClearRichPresence(&mut client) }; println!("{{\"event\":\"cleared\",\"id\":{id}}}"); },
                 Command::Exit => running = false,
             }
         }
