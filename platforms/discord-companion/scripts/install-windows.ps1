@@ -15,7 +15,10 @@ $entry = Join-Path $root 'src\index.mjs'
 $log = Join-Path $localRoot 'companion.log'
 $content = "@echo off`r`n:aurora_restart`r`npowershell -NoProfile -NonInteractive -Command `"if ((Test-Path -LiteralPath '$log') -and ((Get-Item -LiteralPath '$log').Length -gt 1048576)) { Clear-Content -LiteralPath '$log' }`"`r`n`"$node`" `"$entry`" >> `"$log`" 2>&1`r`ntimeout /t 5 /nobreak > nul`r`ngoto aurora_restart`r`n"
 [IO.File]::WriteAllText($launcher, $content, [Text.UTF8Encoding]::new($false))
-if ($StartWithWindows) { Copy-Item -LiteralPath $launcher -Destination $startup -Force }
+if ($StartWithWindows) {
+  $startupContent = "@echo off`r`nstart `"Aurora Discord Companion`" /min `"$launcher`"`r`n"
+  [IO.File]::WriteAllText($startup, $startupContent, [Text.UTF8Encoding]::new($false))
+}
 
 Write-Host "Aurora Companion instalado em: $launcher"
 if ($StartWithWindows) { Write-Host 'Inicialização automática ativada.' } else { Write-Host 'Use npm run startup:install para iniciar com o Windows.' }
