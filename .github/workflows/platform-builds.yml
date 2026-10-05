@@ -12,15 +12,15 @@ jobs:
         working-directory: platforms/android
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
-      - uses: gradle/actions/setup-gradle@v5
+      - uses: gradle/actions/setup-gradle@v6
       - run: chmod +x gradlew
       - run: ./gradlew assembleDebug --no-daemon
       - name: Guardar APK
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: aurora-android-debug
           path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
@@ -41,7 +41,7 @@ jobs:
       - run: npm run build
       - run: npm run platform:check
       - name: Guardar pacote web validado
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: aurora-windows-pwa-source
           path: dist
@@ -66,7 +66,7 @@ jobs:
       - run: npm run build
       - run: npm run desktop:build
       - name: Guardar instalador Windows
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: aurora-music-windows-installer
           path: src-tauri/target/release/bundle/nsis/*.exe
