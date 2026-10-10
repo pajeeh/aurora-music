@@ -18,9 +18,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm audit --omit=dev --audit-level=high
-      - run: npm audit --prefix now-playing-service --omit=dev --audit-level=high
-      - run: npm audit --prefix cloudflare-worker --omit=dev --audit-level=high
+      - name: Auditar aplicação e ferramentas de build
+        run: npm audit --audit-level=high
+      - name: Auditar serviços e integrações
+        run: |
+          npm audit --prefix connect-service --audit-level=high
+          npm audit --prefix now-playing-service --audit-level=high
+          npm audit --prefix cloudflare-worker --audit-level=high
+          npm audit --prefix platforms/discord-companion --audit-level=high
   codeql:
     runs-on: ubuntu-latest
     steps:
