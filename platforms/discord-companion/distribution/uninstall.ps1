@@ -5,9 +5,11 @@ $destination = Join-Path $programsRoot 'Aurora Companion'
 $startup = Join-Path ([Environment]::GetFolderPath('Startup')) 'Aurora Discord Companion.cmd'
 $runKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
 $runName = 'AuroraDiscordCompanion'
+$protocolKey = 'HKCU:\Software\Classes\aurora'
 if (-not $destination.StartsWith($programsRoot, [StringComparison]::OrdinalIgnoreCase)) { throw 'Destino de remoção inválido.' }
 if (Test-Path -LiteralPath $startup) { Remove-Item -LiteralPath $startup -Force }
 if (Get-ItemProperty -Path $runKey -Name $runName -ErrorAction SilentlyContinue) { Remove-ItemProperty -Path $runKey -Name $runName -Force }
+if (Test-Path -LiteralPath $protocolKey) { Remove-Item -LiteralPath $protocolKey -Recurse -Force }
 if (Test-Path -LiteralPath $destination) { Remove-Item -LiteralPath $destination -Recurse -Force }
 if ($ForgetPairing) {
   $config = Join-Path $env:LOCALAPPDATA 'Aurora\discord-companion.json'

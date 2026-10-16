@@ -10,9 +10,9 @@ O Companion prefere o **Discord Social SDK oficial** e envia a atividade como `L
 2. Coloque `DiscordSocialSdk-1.10.19337.zip` em `Downloads` e execute `npm run sdk:install` nesta pasta. O checksum é validado antes da extração.
 3. Execute `npm run sdk:build` para compilar o helper nativo em Rust.
 4. Execute `npm install` nesta pasta.
-5. No Aurora, abra o menu da conta, escolha **Discord · Tocando agora** e gere um código.
-6. Execute `npm run pair -- 12345678` substituindo pelo código exibido.
-7. Execute `npm start` com o Discord Desktop aberto.
+5. Execute `npm run install:windows` para registrar a conexão por um clique.
+6. No Aurora, abra **Discord · Tocando agora** e escolha **Conectar este PC**.
+7. Execute `npm start` com o Discord Desktop aberto. O código manual continua disponível como recuperação.
 
 ## Uso diário no Windows
 
@@ -24,6 +24,8 @@ O Companion prefere o **Discord Social SDK oficial** e envia a atividade como `L
 O diagnóstico termina com erro quando o Companion não conseguir funcionar e usa avisos quando puder continuar pelo RPC compatível. O log da inicialização automática fica somente no computador, em `%LOCALAPPDATA%\Aurora\Discord Companion\companion.log`, e é limitado automaticamente para não crescer sem controle.
 
 O processo registra um heartbeat local usado pelo diagnóstico e o lançador reinicia o Companion após uma interrupção inesperada. Assim, uma falha temporária não exige reiniciar o Windows.
+
+Se o vínculo for revogado, o Companion permanece aberto, marca o estado como **Precisa reconectar** e observa a configuração protegida. Ao clicar em **Corrigir conexão** no Aurora, o link `aurora://` entrega o novo código ao Companion e a sincronização volta sem reiniciar o computador ou copiar o código.
 
 ## Pacote para testers
 
