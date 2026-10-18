@@ -16,3 +16,7 @@ export const disableDiscordPresence=(token:string)=>request<DiscordSettings>(tok
 export async function publishDiscordPresence(token:string,track:Track,playing:boolean,position:number,duration:number,signal?:AbortSignal){
   return fetch(`${ENDPOINT}/api/presence`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({track,playing,position,duration}),signal});
 }
+export async function sendDiscordWebhook(token:string,track:Track){
+  const response=await fetch(`${ENDPOINT}/api/discord/webhook`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({track}),signal:AbortSignal.timeout(10000)});
+  const value=await response.json().catch(()=>({error:'Webhook do Discord indisponível.'}));if(!response.ok)throw new Error(value.error??'Falha ao compartilhar no Discord.');
+}

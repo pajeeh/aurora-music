@@ -52,6 +52,8 @@ O Companion deve guardar o token no cofre de credenciais do sistema, limitar a o
 
 Já estão implementados o serviço multiusuário, a publicação privada pelo player, os códigos descartáveis, a revogação por dispositivo, a expiração da faixa e o Companion para Windows em `platforms/discord-companion`.
 
+O compartilhamento por webhook usa `POST /api/discord/webhook` no Worker autenticado. A URL completa fica apenas no segredo `DISCORD_WEBHOOK_URL` do Cloudflare; nunca é entregue ao navegador, registrada em logs ou incluída em variável `VITE_`. O envio é explícito, restrito à conta autorizada por `ALLOWED_EMAIL`, bloqueia menções, valida campos/URLs e limita uma mensagem a cada 15 segundos.
+
 O aplicativo **Aurora Music** foi criado no Discord Developer Portal com o Application ID público `1555389940542611596`, o asset `aurora`, ícone, descrição, termos e privacidade. A candidatura ao Social SDK foi enviada e o acesso à versão `1.10.19337` foi liberado imediatamente. O Companion agora usa o SDK oficial no Windows, envia `ActivityTypes::Listening` e mantém o RPC anterior como fallback automático. O teste real confirmou faixa, artista, capa e tempo no perfil, mas o cliente Discord ainda apresentou **Jogando Aurora Music**. Isso corresponde à documentação incluída no próprio SDK, que afirma que `Playing` é o único tipo efetivamente relevante para Rich Presence de aplicativos comuns. O rótulo **Ouvindo** continua reservado pelo Discord apesar do valor enviado. As evidências, o checksum e o gate de migração estão no [pacote de candidatura](DISCORD-SOCIAL-SDK-APPLICATION.md).
 
 ## Entregas
