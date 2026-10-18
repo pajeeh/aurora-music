@@ -4,6 +4,7 @@ import { normalizePayload, renderSvg } from '../../now-playing-service/core.js';
 import { applyLibraryAction, publicLibrary } from './library-state.js';
 import { applySocialAction, publicSocialProfile, socialMatch, socialPublic } from './social-state.js';
 import { boundedForward } from './request-guard.js';
+import { discordWebhookPayload, validDiscordWebhookUrl } from './discord-webhook.js';
 import { claimPairing, createPairing, emptyPresenceState, publicPresenceSettings, publishPresence, readDevicePresence, revokeDevice, touchDevice } from './presence-state.js';
 
 const json=(value,status=200,headers={})=>new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers}});
@@ -19,6 +20,7 @@ async function hydrateArtwork(value,current){
 }
 
 export class AuroraState extends DurableObject {
+  constructor(ctx,env){super(ctx,env);this.env=env;}
   async rooms(){
     const data=await this.ctx.storage.get('room');const rooms=new Rooms();
     if(data)rooms.rooms=new Map([[data.code,{...data,members:new Map(data.members)}]]);
@@ -67,6 +69,15 @@ export class AuroraState extends DurableObject {
         if(body.action==='revoke'){state=revokeDevice(state,viewer,body.deviceId);await this.ctx.storage.put('presence',state);return json(publicPresenceSettings(state,viewer));}
         state=publishPresence(state,viewer,body);await this.ctx.storage.put('presence',state);return json(publicPresenceSettings(state,viewer));
       }catch(error){return json({error:error.status?error.message:'Falha na presença do Discord.'},error.status??500);}
+    }
+    if(url.pathname==='/internal/discord-webhook'){
+      if(request.method!=='POST')return json({error:'Método não permitido.'},405);
+      if(!validDiscordWebhookUrl(this.env.DISCORD_WEBHOOK_URL))return json({error:'Webhook do Discord não configurado.'},503);
+      const last=Number(await this.ctx.storage.get('discord-webhook-last')??0);if(Date.now()-last<15000)return json({error:'Aguarde antes de compartilhar outra faixa.'},429);
+      const payload=discordWebhookPayload(await request.json());if(!payload)return json({error:'Faixa inválida.'},400);
+      const response=await fetch(`${this.env.DISCORD_WEBHOOK_URL}?wait=true`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      if(!response.ok)return json({error:'O Discord recusou o webhook.'},502);
+      await this.ctx.storage.put('discord-webhook-last',Date.now());return json({ok:true});
     }
     const rooms=await this.rooms();let body={};if(request.method==='POST')body=await request.json();
     const parts=url.pathname.split('/').filter(Boolean);const roomCode=parts[1];const action=parts[2];
@@ -129,6 +140,12 @@ export default {async fetch(request,env){
       if(request.method!=='POST')return json({error:'Método não permitido.'},405,headers);const forwarded=await boundedForward(request,new URL('/internal/presence',url));if(!forwarded)return json({error:'Solicitação muito grande.'},413,headers);const body=await forwarded.json();const response=await presence.fetch(new Request(new URL('/internal/presence',url),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,action:'claim'})}));const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
     }
     if(!['GET','POST','DELETE'].includes(request.method))return json({error:'Método não permitido.'},405,headers);const identity=await googleIdentity(request,env);if(!identity)return json({error:'unauthorized'},401,headers);const forwarded=await boundedForward(request,new URL('/internal/presence',url));if(!forwarded)return json({error:'Solicitação muito grande.'},413,headers);forwarded.headers.set('X-Aurora-Viewer',identity.sub);const response=await presence.fetch(forwarded);const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
+  }
+  if(url.pathname==='/api/discord/webhook'){
+    if(request.method!=='POST')return json({error:'Método não permitido.'},405,headers);
+    if(!await owner(request,env))return json({error:'unauthorized'},401,headers);
+    const forwarded=await boundedForward(request,new URL('/internal/discord-webhook',url),8192);if(!forwarded)return json({error:'Solicitação muito grande.'},413,headers);
+    const webhook=env.AURORA.getByName('discord-webhook:owner');const response=await webhook.fetch(forwarded);const result=new Response(response.body,response);Object.entries(headers).forEach(([k,v])=>result.headers.set(k,v));return result;
   }
   const match=url.pathname.match(/^\/api\/connect\/rooms(?:\/([\w-]{12})(?:\/(join|actions))?)?$/);
   if(!match)return json({error:'Não encontrado.'},404,headers);

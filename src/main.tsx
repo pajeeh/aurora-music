@@ -1645,7 +1645,7 @@ function App() {
       )}
       {modal==='discord'&&account.identityToken&&(
         <Modal title="Presença no Discord" close={()=>setModal(null)}>
-          <DiscordPresenceModal token={account.identityToken} enabled={discordEnabled} onEnabled={updateDiscordEnabled} notify={setNotice}/>
+          <DiscordPresenceModal token={account.identityToken} track={displayedCurrent} enabled={discordEnabled} onEnabled={updateDiscordEnabled} notify={setNotice}/>
         </Modal>
       )}
     </div>
