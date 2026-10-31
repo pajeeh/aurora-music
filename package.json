@@ -19,14 +19,14 @@
     "@vitejs/plugin-react": "latest",
     "lucide-react": "latest",
     "react": "latest",
-    "react-dom": "latest",
-    "vite": "latest"
+    "react-dom": "latest"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
     "@tauri-apps/cli": "^2.12.1",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "typescript": "latest"
+    "typescript": "latest",
+    "vite": "^8.3.5"
   }
 }
