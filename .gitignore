@@ -10,6 +10,7 @@ platforms/discord-companion/native-social-sdk/target/
 *.log
 .DS_Store
 artifacts/
+audit/
 connect-service/data/
 **/.wrangler/
 platforms/**/build/

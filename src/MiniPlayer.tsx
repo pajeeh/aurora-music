@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {Pause,Play,SkipBack,SkipForward} from './icons';
 import {Cover} from './components';
-import {formatTime} from './playback';
+import {formatTime,isLiveDuration} from './playback';
 import type {Track} from './types';
 
 export type MiniPlayerState={track:Track;playing:boolean;position:number;duration:number;canPrevious:boolean;canNext:boolean};
@@ -15,7 +15,7 @@ export function MiniPlayer(){
  const command=(value:MiniMessage)=>channel.current?.postMessage(value);
  useEffect(()=>{const keydown=(event:KeyboardEvent)=>{if(!state||event.target instanceof HTMLInputElement)return;if(event.code==='Space'){event.preventDefault();command({type:'command',command:'toggle'});}else if(event.code==='ArrowLeft'&&state.duration<=12*60*60)command({type:'command',command:'seek',value:Math.max(0,state.position-10)});else if(event.code==='ArrowRight'&&state.duration<=12*60*60)command({type:'command',command:'seek',value:Math.min(state.duration,state.position+10)});else if(event.code==='MediaTrackPrevious')command({type:'command',command:'previous'});else if(event.code==='MediaTrackNext')command({type:'command',command:'next'});};addEventListener('keydown',keydown);return()=>removeEventListener('keydown',keydown);},[state]);
  if(!state)return <main className={`mini-player waiting ${connection}`}><div className="mini-brand"><img src="./aurora-icon.svg" alt=""/><span/></div><div><b>Aurora Mini Player</b><small>{connection==='disconnected'?'Reconectando ao Aurora…':'Abra o Aurora para controlar a reprodução.'}</small></div></main>;
- const live=state.duration>12*60*60;
+ const live=isLiveDuration(state.duration);
  const progress=!live&&state.duration?Math.min(100,state.position/state.duration*100):0;
  return <main className={`mini-player${state.playing?' is-playing':''}`}>
    <div className="mini-cover"><Cover artwork={state.track.artwork}/><span className="mini-live">{state.playing?'AO VIVO':'PAUSADO'}</span></div>

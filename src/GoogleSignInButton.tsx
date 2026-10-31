@@ -35,7 +35,8 @@ export function GoogleSignInButton({onCredential,notify}:Props){
           }catch{report.current('O Aurora não recebeu o login. Mantenha o aplicativo aberto e tente novamente.');}
         }else callback.current(value.credential);
       },ux_mode:'popup'});
-      window.google.accounts.id.renderButton(host.current,{theme:'filled_black',shape:'pill',size:'large',text:'continue_with',locale:'pt-BR'});
+      const compact=matchMedia('(max-width: 650px)').matches;
+      window.google.accounts.id.renderButton(host.current,{theme:'filled_black',shape:'pill',size:'large',type:compact?'icon':'standard',text:'continue_with',locale:'pt-BR'});
     }catch(error){if(active)report.current((error as Error).message);}})();
     return()=>{active=false;};
   },[desktop]);

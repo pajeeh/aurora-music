@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { listPlaylists, listPlaylistTracks, listLikedTracks } from '../src/library-api.ts';
-import { nextTrack, formatTime, validTracks } from '../src/playback.ts';
+import { nextTrack, formatTime, isLiveDuration, validTracks } from '../src/playback.ts';
 
 test('library uses a read-only authorized request and returns pagination', async context => {
   context.mock.method(globalThis, 'fetch', async (url, options) => {
@@ -44,6 +44,7 @@ test('queue advances in order and stops at the end instead of looping', () => {
 });
 test('real playback timestamps cover minutes, hours and invalid values', () => {
   assert.equal(formatTime(62.7), '1:02'); assert.equal(formatTime(3661), '1:01:01'); assert.equal(formatTime(NaN), '0:00');
+  assert.equal(isLiveDuration(75039631), true); assert.equal(isLiveDuration(3661), false);
 });
 test('damaged saved tracks are rejected', () => {
   assert.deepEqual(validTracks(null), []); assert.deepEqual(validTracks([{ id: 'invalid' }]), []);

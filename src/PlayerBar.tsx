@@ -15,7 +15,7 @@ import {
   VolumeX,
 } from './icons';
 import { Cover } from './components';
-import { formatTime } from './playback';
+import { formatTime, isLiveDuration } from './playback';
 import type { Track } from './types';
 
 export type RepeatMode = 'off' | 'all' | 'one';
@@ -69,6 +69,7 @@ export function PlayerBar({
 }) {
   const [lastVolume, setLastVolume] = useState(70);
   const RepeatIcon = repeat === 'one' ? Repeat1 : Repeat;
+  const live = isLiveDuration(duration);
 
   return (
     <footer className="playerbar compact-player">
@@ -141,12 +142,12 @@ export function PlayerBar({
             aria-label="Posição da reprodução"
             type="range"
             min={0}
-            max={duration || 1}
-            value={Math.min(position, duration || 1)}
-            disabled={!canControl || !duration}
+            max={live ? 1 : duration || 1}
+            value={live ? 1 : Math.min(position, duration || 1)}
+            disabled={!canControl || !duration || live}
             onChange={event => seek(Number(event.target.value))}
           />
-          <span>{formatTime(duration)}</span>
+          <span>{live ? 'AO VIVO' : formatTime(duration)}</span>
         </div>
       </div>
 

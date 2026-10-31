@@ -364,6 +364,7 @@ function App() {
       else setNotice('Faixa adicionada à sessão. O anfitrião controla a reprodução.');
       return;
     }
+    setNotice('');
     setCurrent(track);
     player.load(track.id);
     setRecent(items => [track, ...items.filter(t => t.id !== track.id)].slice(0, 30));
@@ -429,12 +430,12 @@ function App() {
       const localMatches = initialTracks.filter(t =>
         `${t.title} ${t.artist}`.toLowerCase().includes(query.toLowerCase().trim())
       );
-      setResults(data ?? (localMatches.length ? localMatches : initialTracks));
+      setResults(data ?? localMatches);
       if (!data) {
         setNotice(
           localMatches.length
             ? 'Resultados do catálogo local. Renove o YouTube para pesquisar o catálogo completo.'
-            : 'O acesso ao YouTube precisa ser renovado. Enquanto isso, estes são os destaques disponíveis para tocar.'
+            : 'Nenhum resultado no catálogo local. Entre com Google e conecte o YouTube para pesquisar o catálogo completo.'
         );
       }
     } catch (error) {
@@ -460,7 +461,9 @@ function App() {
         setNotice(`Versão alternativa encontrada: ${alternative.title}`);
         void play(alternative);
       } else {
-        setNotice('Não encontramos outra versão compatível no YouTube para esta faixa.');
+        const next=nextTrack(displayedQueue,displayedCurrent.id,1);
+        if(next){setNotice('Esta versão não está disponível. Pulando para a próxima faixa…');void play(next,displayedQueue);}
+        else setNotice('Não encontramos outra versão compatível no YouTube para esta faixa.');
       }
     } catch {
       setNotice('Não foi possível buscar uma versão alternativa no momento.');
@@ -776,8 +779,8 @@ function App() {
           <form
             className="global-search"
             onSubmit={event => {
-              if (view === 'search') void search(event);
-              else event.preventDefault();
+              setView('search');
+              void search(event);
             }}
           >
             <Search />
@@ -903,11 +906,15 @@ function App() {
           {view === 'home' ? (
             <HomeStage
               track={displayedCurrent}
+              playing={playing}
               liked={liked.has(displayedCurrent.id)}
               like={() => toggleLike(displayedCurrent)}
               play={() => {
-                if (canControl) void play(displayedCurrent);
-                else enqueue(displayedCurrent);
+                if (!canControl) enqueue(displayedCurrent);
+                else if (playing) {
+                  if (group.state) void group.action({ type: 'toggle' });
+                  else player.toggle();
+                } else void play(displayedCurrent);
               }}
               collections={collections}
               recent={recent}

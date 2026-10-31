@@ -9,6 +9,9 @@ export function formatTime(seconds: number) {
   const total = Math.floor(seconds);
   return total >= 3600 ? `${Math.floor(total / 3600)}:${String(Math.floor(total / 60) % 60).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}` : `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
 }
+export function isLiveDuration(seconds: number) {
+  return Number.isFinite(seconds) && seconds > 12 * 60 * 60;
+}
 export function validTracks(value: unknown): Track[] {
   if (!Array.isArray(value)) return [];
   const keys = ['id', 'title', 'artist', 'album', 'duration', 'artwork', 'accent'] as const;
