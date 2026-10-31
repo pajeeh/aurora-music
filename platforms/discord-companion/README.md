@@ -2,7 +2,7 @@
 
 Ponte local que lê somente a presença pareada do Aurora e publica uma atividade Rich Presence no Discord Desktop.
 
-O Companion prefere o **Discord Social SDK oficial** e envia a atividade como `Listening`. Se o helper nativo ou a DLL não estiverem disponíveis, volta automaticamente ao RPC compatível, que mostra **Jogando Aurora Music**. O Discord ainda controla a apresentação final do rótulo em cada cliente.
+O Companion prefere o **Discord Social SDK oficial**, autentica a conta pelo fluxo oficial e envia a atividade como `Listening`. A primeira execução abre uma autorização do Discord; depois disso, as credenciais de curta duração são renovadas e guardadas pelo Windows DPAPI, sem novo código ou clique diário. Se o helper nativo ou a DLL não estiverem disponíveis, volta automaticamente ao RPC compatível, que mostra **Jogando Aurora Music**. O Discord ainda controla a apresentação final do rótulo em cada cliente.
 
 ## Preparação
 
@@ -13,6 +13,7 @@ O Companion prefere o **Discord Social SDK oficial** e envia a atividade como `L
 5. Execute `npm run install:windows` para registrar a conexão por um clique.
 6. No Aurora, abra **Discord · Tocando agora** e escolha **Conectar este PC**.
 7. Execute `npm start` com o Discord Desktop aberto. O código manual continua disponível como recuperação.
+8. Na primeira execução, confirme uma vez a autorização oficial **Aurora Music** aberta pelo Discord.
 
 ## Uso diário no Windows
 
@@ -35,4 +36,4 @@ O ZIP, as DLLs extraídas e os binários compilados ficam ignorados pelo Git. Pa
 
 O aplicativo oficial **Aurora Music** usa o Application ID público `1555389940542611596` e o asset Rich Presence `aurora`. `DISCORD_APPLICATION_ID` continua disponível apenas para desenvolvimento com outro aplicativo.
 
-O token pareado fica criptografado pelo Windows DPAPI para o usuário atual, fora do repositório, em `%LOCALAPPDATA%\Aurora\discord-companion.json`. Revogue o computador pela mesma tela do Aurora. Nenhum token Google ou YouTube chega ao Companion ou ao Discord.
+O token pareado e as credenciais do Discord ficam criptografados pelo Windows DPAPI para o usuário atual, fora do repositório, em `%LOCALAPPDATA%\Aurora\discord-companion.json`. Revogue o computador pela mesma tela do Aurora. Nenhum token Google ou YouTube chega ao Companion ou ao Discord, e nenhum token é escrito nos logs.
