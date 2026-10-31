@@ -21,17 +21,12 @@ struct DiscordActivityButton { opaque: *mut c_void }
 #[repr(C)]
 struct DiscordClientResult { opaque: *mut c_void }
 #[repr(C)]
-struct DiscordAuthorizationCodeChallenge { opaque: *mut c_void }
-#[repr(C)]
-struct DiscordAuthorizationCodeVerifier { opaque: *mut c_void }
-#[repr(C)]
-struct DiscordAuthorizationArgs { opaque: *mut c_void }
+struct DiscordDeviceAuthorizationArgs { opaque: *mut c_void }
 #[repr(C)]
 struct DiscordString { ptr: *mut u8, size: usize }
 
 type UpdateCallback = unsafe extern "C" fn(*mut DiscordClientResult, *mut c_void);
 type FreeCallback = unsafe extern "C" fn(*mut c_void);
-type AuthorizationCallback = unsafe extern "C" fn(*mut DiscordClientResult, DiscordString, DiscordString, *mut c_void);
 type TokenCallback = unsafe extern "C" fn(*mut DiscordClientResult, DiscordString, DiscordString, i32, i32, DiscordString, *mut c_void);
 type StatusCallback = unsafe extern "C" fn(i32, i32, i32, *mut c_void);
 
@@ -42,9 +37,7 @@ unsafe extern "C" {
     fn Discord_Client_Drop(client: *mut DiscordClient);
     fn Discord_Client_SetApplicationId(client: *mut DiscordClient, application_id: u64);
     fn Discord_Client_GetDefaultPresenceScopes(value: *mut DiscordString);
-    fn Discord_Client_CreateAuthorizationCodeVerifier(client: *mut DiscordClient, value: *mut DiscordAuthorizationCodeVerifier);
-    fn Discord_Client_Authorize(client: *mut DiscordClient, args: *mut DiscordAuthorizationArgs, callback: Option<AuthorizationCallback>, free_callback: Option<FreeCallback>, user_data: *mut c_void);
-    fn Discord_Client_GetToken(client: *mut DiscordClient, application_id: u64, code: DiscordString, verifier: DiscordString, redirect_uri: DiscordString, callback: Option<TokenCallback>, free_callback: Option<FreeCallback>, user_data: *mut c_void);
+    fn Discord_Client_GetTokenFromDevice(client: *mut DiscordClient, args: *mut DiscordDeviceAuthorizationArgs, callback: Option<TokenCallback>, free_callback: Option<FreeCallback>, user_data: *mut c_void);
     fn Discord_Client_RefreshToken(client: *mut DiscordClient, application_id: u64, refresh_token: DiscordString, callback: Option<TokenCallback>, free_callback: Option<FreeCallback>, user_data: *mut c_void);
     fn Discord_Client_UpdateToken(client: *mut DiscordClient, token_type: i32, token: DiscordString, callback: Option<UpdateCallback>, free_callback: Option<FreeCallback>, user_data: *mut c_void);
     fn Discord_Client_Connect(client: *mut DiscordClient);
@@ -54,15 +47,10 @@ unsafe extern "C" {
     fn Discord_Client_UpdateRichPresence(client: *mut DiscordClient, activity: *mut DiscordActivity, callback: Option<UpdateCallback>, free_callback: Option<FreeCallback>, user_data: *mut c_void);
     fn Discord_ClientResult_Successful(result: *mut DiscordClientResult) -> bool;
     fn Discord_ClientResult_Drop(result: *mut DiscordClientResult);
-    fn Discord_AuthorizationCodeVerifier_Drop(value: *mut DiscordAuthorizationCodeVerifier);
-    fn Discord_AuthorizationCodeVerifier_Challenge(value: *mut DiscordAuthorizationCodeVerifier, result: *mut DiscordAuthorizationCodeChallenge);
-    fn Discord_AuthorizationCodeVerifier_Verifier(value: *mut DiscordAuthorizationCodeVerifier, result: *mut DiscordString);
-    fn Discord_AuthorizationCodeChallenge_Drop(value: *mut DiscordAuthorizationCodeChallenge);
-    fn Discord_AuthorizationArgs_Init(value: *mut DiscordAuthorizationArgs);
-    fn Discord_AuthorizationArgs_Drop(value: *mut DiscordAuthorizationArgs);
-    fn Discord_AuthorizationArgs_SetClientId(value: *mut DiscordAuthorizationArgs, client_id: u64);
-    fn Discord_AuthorizationArgs_SetScopes(value: *mut DiscordAuthorizationArgs, scopes: DiscordString);
-    fn Discord_AuthorizationArgs_SetCodeChallenge(value: *mut DiscordAuthorizationArgs, challenge: *mut DiscordAuthorizationCodeChallenge);
+    fn Discord_DeviceAuthorizationArgs_Init(value: *mut DiscordDeviceAuthorizationArgs);
+    fn Discord_DeviceAuthorizationArgs_Drop(value: *mut DiscordDeviceAuthorizationArgs);
+    fn Discord_DeviceAuthorizationArgs_SetClientId(value: *mut DiscordDeviceAuthorizationArgs, client_id: u64);
+    fn Discord_DeviceAuthorizationArgs_SetScopes(value: *mut DiscordDeviceAuthorizationArgs, scopes: DiscordString);
     fn Discord_Activity_Init(activity: *mut DiscordActivity);
     fn Discord_Activity_Drop(activity: *mut DiscordActivity);
     fn Discord_Activity_SetName(activity: *mut DiscordActivity, value: DiscordString);
@@ -107,14 +95,9 @@ unsafe fn copy_string(value: DiscordString) -> String {
 }
 
 struct ClientContext { client: *mut DiscordClient, application_id: u64 }
-struct AuthorizationContext { client: *mut DiscordClient, application_id: u64, verifier: String }
 
 unsafe extern "C" fn free_client_context(user_data: *mut c_void) {
     if !user_data.is_null() { drop(unsafe { Box::from_raw(user_data as *mut ClientContext) }); }
-}
-
-unsafe extern "C" fn free_authorization_context(user_data: *mut c_void) {
-    if !user_data.is_null() { drop(unsafe { Box::from_raw(user_data as *mut AuthorizationContext) }); }
 }
 
 unsafe extern "C" fn token_updated(result: *mut DiscordClientResult, user_data: *mut c_void) {
@@ -145,20 +128,6 @@ unsafe extern "C" fn token_received(result: *mut DiscordClientResult, access: Di
     unsafe { Discord_ClientResult_Drop(result) };
 }
 
-unsafe extern "C" fn authorized(result: *mut DiscordClientResult, code: DiscordString, redirect_uri: DiscordString, user_data: *mut c_void) {
-    let successful = unsafe { Discord_ClientResult_Successful(result) };
-    let context = unsafe { &*(user_data as *mut AuthorizationContext) };
-    if successful {
-        let code_value = unsafe { copy_string(code) };
-        let redirect_value = unsafe { copy_string(redirect_uri) };
-        let token_context = Box::into_raw(Box::new(ClientContext { client: context.client, application_id: context.application_id })) as *mut c_void;
-        unsafe { Discord_Client_GetToken(context.client, context.application_id, discord_string(&code_value), discord_string(&context.verifier), discord_string(&redirect_value), Some(token_received), Some(free_client_context), token_context) };
-    } else {
-        println!(r#"{{"event":"auth-error","stage":"authorize"}}"#);
-    }
-    unsafe { Discord_ClientResult_Drop(result) };
-}
-
 unsafe extern "C" fn status_changed(status: i32, error: i32, detail: i32, _user_data: *mut c_void) {
     if status == 3 { println!(r#"{{"event":"connected","authenticated":true}}"#); }
     else { println!("{}", serde_json::json!({"event":"status","status":status,"error":error,"detail":detail})); }
@@ -175,25 +144,15 @@ unsafe fn refresh(client: *mut DiscordClient, application_id: u64, refresh_token
 }
 
 unsafe fn authorize(client: *mut DiscordClient, application_id: u64) {
-    let mut verifier = DiscordAuthorizationCodeVerifier { opaque: ptr::null_mut() };
-    unsafe { Discord_Client_CreateAuthorizationCodeVerifier(client, &mut verifier) };
-    let mut challenge = DiscordAuthorizationCodeChallenge { opaque: ptr::null_mut() };
-    unsafe { Discord_AuthorizationCodeVerifier_Challenge(&mut verifier, &mut challenge) };
-    let mut verifier_text = DiscordString { ptr: ptr::null_mut(), size: 0 };
-    unsafe { Discord_AuthorizationCodeVerifier_Verifier(&mut verifier, &mut verifier_text) };
-    let verifier_value = unsafe { copy_string(verifier_text) };
     let mut scopes = DiscordString { ptr: ptr::null_mut(), size: 0 };
     unsafe { Discord_Client_GetDefaultPresenceScopes(&mut scopes) };
-    let mut args = DiscordAuthorizationArgs { opaque: ptr::null_mut() };
-    unsafe { Discord_AuthorizationArgs_Init(&mut args) };
-    unsafe { Discord_AuthorizationArgs_SetClientId(&mut args, application_id) };
-    unsafe { Discord_AuthorizationArgs_SetScopes(&mut args, scopes) };
-    unsafe { Discord_AuthorizationArgs_SetCodeChallenge(&mut args, &mut challenge) };
-    let context = Box::into_raw(Box::new(AuthorizationContext { client, application_id, verifier: verifier_value })) as *mut c_void;
-    unsafe { Discord_Client_Authorize(client, &mut args, Some(authorized), Some(free_authorization_context), context) };
-    unsafe { Discord_AuthorizationArgs_Drop(&mut args) };
-    unsafe { Discord_AuthorizationCodeChallenge_Drop(&mut challenge) };
-    unsafe { Discord_AuthorizationCodeVerifier_Drop(&mut verifier) };
+    let mut args = DiscordDeviceAuthorizationArgs { opaque: ptr::null_mut() };
+    unsafe { Discord_DeviceAuthorizationArgs_Init(&mut args) };
+    unsafe { Discord_DeviceAuthorizationArgs_SetClientId(&mut args, application_id) };
+    unsafe { Discord_DeviceAuthorizationArgs_SetScopes(&mut args, scopes) };
+    let context = Box::into_raw(Box::new(ClientContext { client, application_id })) as *mut c_void;
+    unsafe { Discord_Client_GetTokenFromDevice(client, &mut args, Some(token_received), Some(free_client_context), context) };
+    unsafe { Discord_DeviceAuthorizationArgs_Drop(&mut args) };
 }
 
 unsafe extern "C" fn updated(result: *mut DiscordClientResult, user_data: *mut c_void) {

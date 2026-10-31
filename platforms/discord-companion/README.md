@@ -2,7 +2,7 @@
 
 Ponte local que lê somente a presença pareada do Aurora e publica uma atividade Rich Presence no Discord Desktop.
 
-O Companion prefere o **Discord Social SDK oficial**, autentica a conta pelo fluxo oficial e envia a atividade como `Listening`. A primeira execução abre uma autorização do Discord; depois disso, as credenciais de curta duração são renovadas e guardadas pelo Windows DPAPI, sem novo código ou clique diário. Se o helper nativo ou a DLL não estiverem disponíveis, volta automaticamente ao RPC compatível, que mostra **Jogando Aurora Music**. O Discord ainda controla a apresentação final do rótulo em cada cliente.
+O Companion prefere o **Discord Social SDK oficial**, autentica a conta pelo fluxo oficial de dispositivo e envia a atividade como `Listening`. Esse fluxo não depende de `redirect_uri`: a primeira execução abre uma autorização do Discord; depois disso, as credenciais são renovadas e guardadas pelo Windows DPAPI, sem novo código ou clique diário. Se o helper nativo ou a DLL não estiverem disponíveis, volta automaticamente ao RPC compatível, que mostra **Jogando Aurora Music**. O Discord ainda controla a apresentação final do rótulo em cada cliente.
 
 ## Preparação
 
