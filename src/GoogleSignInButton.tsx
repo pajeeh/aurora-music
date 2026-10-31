@@ -3,9 +3,9 @@ import {googleConnectionReady,prepareGoogleConnection} from './google';
 
 declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 
-type Props={onCredential:(credential:string)=>void;notify:(message:string)=>void};
+type Props={onCredential:(credential:string)=>void;notify:(message:string)=>void;compact?:boolean};
 
-export function GoogleSignInButton({onCredential,notify}:Props){
+export function GoogleSignInButton({onCredential,notify,compact}:Props){
   const host=useRef<HTMLDivElement>(null),callback=useRef(onCredential),report=useRef(notify);
   const [desktopBusy,setDesktopBusy]=useState(false);
   const desktop=Boolean(window.__TAURI_INTERNALS__);
@@ -35,8 +35,8 @@ export function GoogleSignInButton({onCredential,notify}:Props){
           }catch{report.current('O Aurora não recebeu o login. Mantenha o aplicativo aberto e tente novamente.');}
         }else callback.current(value.credential);
       },ux_mode:'popup'});
-      const compact=matchMedia('(max-width: 650px)').matches;
-      window.google.accounts.id.renderButton(host.current,{theme:'filled_black',shape:'pill',size:'large',type:compact?'icon':'standard',text:'continue_with',locale:'pt-BR'});
+      const iconOnly=compact??matchMedia('(max-width: 650px)').matches;
+      window.google.accounts.id.renderButton(host.current,{theme:'filled_black',shape:'pill',size:'large',type:iconOnly?'icon':'standard',text:'continue_with',locale:'pt-BR'});
     }catch(error){if(active)report.current((error as Error).message);}})();
     return()=>{active=false;};
   },[desktop]);
@@ -52,5 +52,5 @@ export function GoogleSignInButton({onCredential,notify}:Props){
 
   return desktop
     ?<button className="google-desktop-login" disabled={desktopBusy} onClick={startDesktopLogin}>{desktopBusy?'Aguardando Google…':'Entrar com Google'}</button>
-    :<div className="google-signin" ref={host}/>;
+    :<div className={`google-signin${compact===false?' google-signin-wide':''}`} ref={host}/>;
 }

@@ -814,7 +814,7 @@ function App() {
                 <RefreshCw /> Conectar YouTube
               </button>
             )}
-            {!account.profile ? <GoogleSignInButton onCredential={account.signIn} notify={setNotice}/> : <button
+            {!account.profile && view !== 'social' ? <GoogleSignInButton onCredential={account.signIn} notify={setNotice}/> : account.profile ? <button
               className="account-button"
               aria-label={
                 account.profile
@@ -839,7 +839,7 @@ function App() {
                   : `${account.profile.name}${account.token ? ' · YouTube' : ''}`}
               </span>
               <ChevronDown />
-            </button>}
+            </button> : null}
             {account.busy && (
               <button onClick={account.cancel}>Cancelar</button>
             )}
@@ -929,7 +929,7 @@ function App() {
               connect={() => setModal('connect')}
             />
           ) : view === 'social' ? (
-            <SocialStage token={account.identityToken} name={account.profile?.name??'Aurora'} avatar={account.profile?.avatar} current={displayedCurrent} taste={Array.from(new Map([...saved,...recent].map(track=>[track.id,track])).values()).slice(0,50)} play={(item,source)=>void play(item,source)} notify={setNotice}/>
+            <SocialStage token={account.identityToken} name={account.profile?.name??'Aurora'} avatar={account.profile?.avatar} current={displayedCurrent} taste={Array.from(new Map([...saved,...recent].map(track=>[track.id,track])).values()).slice(0,50)} play={(item,source)=>void play(item,source)} notify={setNotice} login={!account.profile?<GoogleSignInButton compact={false} onCredential={account.signIn} notify={setNotice}/>:undefined}/>
           ) : view === 'library' ? (
             <>
               <div className="library-toolbar">
